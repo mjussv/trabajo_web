@@ -2,27 +2,24 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	// 1. Define el directorio que contiene los archivos estáticos
+	// Servidor de archivos estáticos (TP1)
 	staticDir := "./static"
-
-	// 2. Crea un manejador de servidor de archivos
 	fileServer := http.FileServer(http.Dir(staticDir))
-
-	// 3. Registra el manejador para la ruta raíz "/"
 	http.Handle("/", fileServer)
 
-	// 4. Define el puerto y muestra mensajes informativos
 	port := ":8080"
-	fmt.Printf("Servidor estático escuchando en http://localhost%s\n", port)
+	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
 	fmt.Printf("Sirviendo archivos desde: %s\n", staticDir)
 
-	// 5. Inicia el servidor
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
-		fmt.Printf("Error al iniciar el servidor: %s\n", err)
+		log.Fatalf("Error al iniciar el servidor: %s\n", err)
 	}
 }

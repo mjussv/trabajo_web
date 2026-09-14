@@ -9,9 +9,9 @@
 
   La ejecución de los tests está completamente automatizada en el archivo Makefile.
 
-**Comando de ejecución (desde terminal):**
+**Cómo realizar la ejecución de pruebas:**
 
-  " make test "
+  Se debe entrar a la carpeta "trabajo-web" y ejecutar desde la terminal el comando " make test ".
 
 **A tener en cuenta:**
 

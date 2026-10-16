@@ -20,4 +20,4 @@
     - (opcional para verificar que PostgreSQL esté listo y poder ejecutar el main.go: " docker exec postgres_container pg_isready -U postgres -d outfits_db ", sino esperar unos segundos)
     - " go run main.go "
   - La segunda entrega solo requiere que se ejecute " make test-db "
-  - Si se quisieran probar todos los tests que hay disponibles en todo el proyecto, se debe ejecutar " make test "
+  - Si se quisieran probar todos los tests que hay disponibles en todo el proyecto se debe ejecutar " make test "

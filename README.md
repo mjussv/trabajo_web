@@ -9,8 +9,8 @@
   La ejecución de los tests está completamente automatizada en el archivo Makefile.
 
 **Comando de ejecución (desde terminal y carpeta raíz):**
-
-  " make test-api "
+  "cd trabajo-web "
+  " make test-api " 
 
 **A tener en cuenta:**
 

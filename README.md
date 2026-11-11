@@ -2,7 +2,7 @@
 
 **Requisitos Previos:**
 
-  Para ejecutar el proyecto y correr el archivo de pruebas es necesario contar con las siguientes herramientas: Go: (v1.22.2+), sqlc: (v1.31.1+), templ: (v0.2.747+), Docker: (v29.1.3+), Docker Compose: (v2.27.0+), GNU Make: (v4.3+) y Hurl: (v4.3.0+) 
+  Para ejecutar el proyecto y correr el archivo de pruebas es necesario contar con las siguientes herramientas: Go (v1.22.2+), sqlc (v1.31.1+), templ (v0.2.747+), Docker (v29.1.3+), Docker Compose (v2.27.0+), GNU Make (v4.3+) y Hurl (v4.3.0+) 
   
 **Ejecución de Pruebas:**
 

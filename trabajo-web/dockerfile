@@ -1,0 +1,29 @@
+# Etapa 1: Compilación
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+# Copiar dependencias
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copiar código fuente
+COPY . .
+
+# Compilar el binario
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+# Etapa 2: Imagen final ligera (Producción)
+FROM alpine:latest
+
+WORKDIR /app
+
+# Copiar ejecutable binario desde el builder
+COPY --from=builder /app/main .
+
+# COPIA CRÍTICA: Archivos estáticos (CSS, imágenes) necesarios para la vista web
+COPY --from=builder /app/static ./static
+
+EXPOSE 8080
+
+CMD ["./main"]

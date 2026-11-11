@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Playfair+Display:wght@700&display=swap');
+
+/* Paleta de colores: Manteca y Ciruela */
+:root {
+  --bg-top: #F8E8A2;      /* Amarillo manteca */
+  --text-top: #3C132C;    /* Ciruela oscuro */
+  --bg-bottom: #3C132C;   /* Fondo ciruela */
+  --text-bottom: #F8E8A2; /* Texto manteca */
+  --danger: #d9534f;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-bottom);
+  color: var(--text-bottom);
+  font-family: 'Montserrat', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+}
+
+/* Tarjeta contenedora principal */
+.container {
+  width: 100%;
+  max-width: 580px;
+  background-color: var(--bg-top);
+  color: var(--text-top);
+  border-radius: 20px;
+  padding: 35px 25px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 25px; /* Separa el título, formulario y lista entre sí */
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.3rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: -15px;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* Bloques tipo tarjeta blanca interna */
+.card-form, .card-lista {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 15px; /* Separa el título H2 de los inputs */
+  color: var(--text-top);
+}
+
+/* Formulario maquetado en columna con flexbox y espaciado */
+#form-prenda, .card-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* Otorga aire y separa cada input de forma uniforme */
+}
+
+#form-prenda input, .card-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+#form-prenda button, .card-form button {
+  margin-top: 5px;
+  padding: 12px;
+  background-color: var(--bg-bottom);
+  color: var(--text-bottom);
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+#form-prenda button:hover, .card-form button:hover {
+  opacity: 0.9;
+}
+
+/* Lista Dinámica */
+.lista-container {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.item-prenda {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-info strong {
+  font-size: 1rem;
+  color: var(--text-top);
+}
+
+.item-info p {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.item-info .tags {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.btn-eliminar {
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-eliminar:hover {
+  background-color: #c9302c;
+}

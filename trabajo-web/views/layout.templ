@@ -1,0 +1,19 @@
+package views
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<!-- Enlace a tu CSS personalizado en static/css/styles.css -->
+			<link rel="stylesheet" href="/static/css/styles.css"/>
+		</head>
+		<body>
+			<main class="container">
+				{ children... }
+			</main>
+		</body>
+	</html>
+}

@@ -1,0 +1,62 @@
+package views
+
+import (
+	"strconv"
+	db "trabajo-web/db/sqlc"
+)
+
+templ IndexPage(usuario *db.Usuario, prendas []db.Prenda, errorMessage string) {
+	@Layout("OOTD 🛍️ - Outfit Of The Day") {
+		<h1>OOTD 🛍️</h1>
+		<p class="subtitle">Gestiona tus outfits y arma tu guardarropa digital</p>
+
+		if errorMessage != "" {
+			<div style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; border: 1px solid #f5c6cb; text-align: center; font-weight: bold; margin-bottom: 20px;">
+				⚠️ { errorMessage }
+			</div>
+		}
+
+		if usuario == nil {
+			<!-- PANTALLA 1: INICIO DE SESIÓN / REGISTRO -->
+			<div class="card-form" style="margin-bottom: 20px;">
+				<h2>🔑 Iniciar Sesión</h2>
+				<form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+					<input type="text" name="nombre" placeholder="Nombre de usuario" required/>
+					<input type="password" name="password" placeholder="Contraseña" required/>
+					<button type="submit">Ingresar</button>
+				</form>
+			</div>
+
+			<div class="card-form">
+				<h2>👤 Registrar Nuevo Usuario</h2>
+				<form action="/usuarios/crear-web" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+					<input type="text" name="nombre" placeholder="Tu Nombre de usuario" required/>
+					<input type="email" name="email" placeholder="Tu Email (ej: usuario@email.com)" required/>
+					<input type="password" name="password" placeholder="Contraseña" required/>
+					<button type="submit">Registrarse e Ingresar</button>
+				</form>
+			</div>
+		} else {
+			<!-- PANTALLA 2: USUARIO LOGUEADO -->
+			<div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px;">
+				<div>
+					<span style="color: #666; font-size: 0.9rem;">Bienvenido/a,</span>
+					<h3 style="color: var(--text-top); margin: 0;">{ usuario.Nombre } <span style="font-size: 0.8rem; font-weight: normal; color: #888;">(ID: { strconv.Itoa(int(usuario.ID)) })</span></h3>
+				</div>
+				<a href="/" style="color: var(--danger); text-decoration: none; font-weight: bold; font-size: 0.9rem; padding: 8px 12px; border: 1px solid var(--danger); border-radius: 6px;">Cerrar Sesión</a>
+			</div>
+
+			<div class="card-form">
+				<h2>➕ Cargar Nueva Prenda</h2>
+				<form action="/prendas/crear-web" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+					<input type="hidden" name="usuario_id" value={ strconv.Itoa(int(usuario.ID)) }/>
+					<input type="text" name="nombre" placeholder="Nombre de la prenda (ej: Remera Negra)" required/>
+					<input type="text" name="categoria" placeholder="Categoría (ej: Superior, Calzado)" required/>
+					<button type="submit">Guardar Prenda</button>
+				</form>
+			</div>
+
+			@EntityList(prendas)
+		}
+	}
+}

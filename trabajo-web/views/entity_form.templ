@@ -1,0 +1,14 @@
+package views
+
+templ EntityForm() {
+    <!DOCTYPE html>
+	<section class="card-form">
+		<h2>Agregar Nueva Prenda</h2>
+		<form id="form-prenda" action="/prendas" method="POST">
+			<input type="number" id="usuario_id" name="usuario_id" placeholder="ID de Usuario" required/>
+			<input type="text" id="nombre" name="nombre" placeholder="Nombre (ej: Remera Oversize)" required/>
+			<input type="text" id="categoria" name="categoria" placeholder="Categoría (ej: Casual, Noche)" required/>
+			<button type="submit">Cargar a Clóset</button>
+		</form>
+	</section>
+}

@@ -22,4 +22,4 @@
 
 **Aclaración para el docente:**
 
-  En esta entrega, por cuestiones de tiempo y complejidad, implementamos con la lógica y vistas de Templ las entidades principales: "usuarios" y "prendas", como se acordó en la clase consulta del 6/11; nos faltaría hacer lo mismo con "looks" y "me_gusta_looks", por lo que vamos a seguir trabajando en eso en un branch a parte, con el fin de tenerlo listo y completo para la próxima entrega.
+  En esta entrega, por cuestiones de tiempo y complejidad, implementamos con la lógica y vistas de Templ las entidades principales: "usuarios" y "prendas", como se acordó en la clase consulta del 6/11; nos faltaría hacer lo mismo con "looks" y "me_gusta_looks", por lo que vamos a seguir trabajando en eso en un branch aparte, con el fin de tenerlo listo y completo para la próxima entrega.

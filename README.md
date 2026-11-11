@@ -2,17 +2,16 @@
 
 **Requisitos Previos:**
 
-  Para ejecutar el proyecto y correr el archivo de pruebas es necesario contar con las herramientas de la segunda entrega.
+  Para ejecutar el proyecto y correr el archivo de pruebas es necesario contar con las siguientes herramientas Go (v1.22.2+), sqlc (v1.31.1+), Docker (v29.1.3+), Docker Compose (v2.27.0+), GNU Make (v4.3+) y Hurl (v4.3.0+)
   
 **Ejecución de Pruebas:**
 
   La ejecución de los tests está completamente automatizada en el archivo Makefile.
 
 **Comando de ejecución (desde terminal y carpeta raíz):**
-
-  "cd trabajo-web "
-  
-  " make test-api " 
+    
+    -" cd trabajo-web "
+    -" make test-api " 
 
 **A tener en cuenta:**
 

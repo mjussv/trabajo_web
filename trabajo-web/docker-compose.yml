@@ -11,6 +11,11 @@ services:
     volumes: 
       - postgres_data:/var/lib/postgresql/data
       - ./db/schema:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d outfits_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
@@ -21,7 +26,8 @@ services:
       DATABASE_URL: "postgres://postgres:mysecretpassword@postgresql:5432/outfits_db?sslmode=disable"
       PORT: "8080"
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
 
 volumes: 
   postgres_data:

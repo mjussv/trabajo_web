@@ -20,6 +20,6 @@
     - " make test-db ": se encarga de realizar los tests correspondientes a la 2da entrega (aquellos que son sobre la base de datos)
     - " make test ": ejecuta todos los tests que encuentre en el proyecto  
 
-**Aclaración para el docente:**
+**Aclaración para la corrección:**
 
   En esta entrega, por cuestiones de tiempo y complejidad, implementamos con la lógica y vistas de Templ las entidades principales: "usuarios" y "prendas", como se nos aconsejó en la clase consulta del 6/11; nos faltaría hacer lo mismo con "looks" y "me_gusta_looks", por lo que vamos a seguir trabajando en eso en un branch aparte, con el fin de tenerlo listo y completo para la próxima entrega.

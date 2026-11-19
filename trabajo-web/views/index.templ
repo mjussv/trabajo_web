@@ -1,7 +1,6 @@
 package views
 
 import (
-	"fmt"
 	"strconv"
 	db "trabajo-web/db/sqlc"
 )
@@ -70,7 +69,7 @@ templ IndexPage(
 			<div class="forms-grid">
 				<section class="card-form">
 					<h2>➕ Cargar Nueva Prenda</h2>
-					<form hx-post="/prendas" hx-target="#grid-prendas" hx-swap="innerHTML">
+					<form hx-post="/prendas" hx-target="#grid-prendas" hx-swap="outerHTML">
 						<input type="text" name="nombre" placeholder="Nombre (ej: Camperón de Cuero)" required/>
 						<input type="text" name="categoria" placeholder="Categoría (ej: Abrigos, Calzado, Tops)" required/>
 						<input type="url" name="url_imagen" placeholder="URL de la foto de la prenda (https://...)"/>
@@ -80,7 +79,7 @@ templ IndexPage(
 
 				<section class="card-form">
 					<h2>✨ Crear Nuevo Look</h2>
-					<form hx-post="/looks/crear-web" hx-target="#grid-looks" hx-swap="innerHTML">
+					<form hx-post="/looks" hx-target="#grid-looks" hx-swap="outerHTML">
 						<input type="text" name="nombre" placeholder="Nombre del Look (ej: Urbano Noche)" required/>
 						<input type="text" name="descripcion" placeholder="Descripción (notas, tips de combinación)"/>
 						<div class="form-row">
@@ -89,12 +88,7 @@ templ IndexPage(
 						</div>
 						<div class="form-row">
 							<input type="text" name="estilo" placeholder="Estilo (ej: Minimalista, Streetwear)"/>
-							<select name="prenda_estrella_id">
-								<option value="">-- Prenda estrella (opcional) --</option>
-								for _, p := range prendas {
-									<option value={ strconv.Itoa(int(p.ID)) }>{ p.Nombre } ({ p.Categoria })</option>
-								}
-							</select>
+							@PrendasSelect(prendas, false)
 						</div>
 						<input type="url" name="url_imagen" placeholder="URL de la foto del Look (https://...)" required/>
 						<button type="submit">Publicar Look</button>
@@ -121,74 +115,12 @@ templ IndexPage(
 
 				if filtro == "todos" || filtro == "" || filtro == "looks" {
 					<h3 class="sub-section-title">Looks guardados</h3>
-					if len(looks) == 0 {
-						<p class="empty-msg">Todavía no armaste ningún look.</p>
-					} else {
-						<div class="pinterest-grid" id="grid-looks">
-							for _, l := range looks {
-								<article class="pin-card">
-									<img src={ l.UrlImagen } alt={ l.Nombre } class="pin-img"/>
-									<div class="pin-body">
-										<div class="pin-tags">
-											<span class="tag">{ l.Ocasion }</span>
-											<span class="tag">{ l.Temporada }</span>
-											if l.Estilo.Valid && l.Estilo.String != "" {
-												<span class="tag tag-accent">{ l.Estilo.String }</span>
-											}
-										</div>
-										<h4>{ l.Nombre }</h4>
-										if l.Descripcion.Valid && l.Descripcion.String != "" {
-											<p class="pin-desc">{ l.Descripcion.String }</p>
-										}
-										if l.PrendaEstrella.Valid && l.PrendaEstrella.String != "" {
-											<p class="pin-star">⭐ Prenda estrella: <strong>{ l.PrendaEstrella.String }</strong></p>
-										}
-										<div class="pin-footer">
-											<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) }</span>
-											<button 
-												hx-delete={ fmt.Sprintf("/looks/%d", l.ID) } 
-												hx-target="closest article" 
-												hx-swap="outerHTML" 
-												hx-confirm="¿Seguro que querés borrar este look?"
-												class="btn-eliminar">
-												Borrar
-											</button>
-										</div>
-									</div>
-								</article>
-							}
-						</div>
-					}
+					@LooksList(looks)
 				}
 
 				if filtro == "todos" || filtro == "" || filtro == "prendas" {
 					<h3 class="sub-section-title" style="margin-top: 24px;">Prendas sueltas</h3>
-					if len(prendas) == 0 {
-						<p class="empty-msg">No tenés prendas cargadas en tu clóset aún.</p>
-					} else {
-						<div class="pinterest-grid" id="grid-prendas">
-							for _, p := range prendas {
-								<article class="pin-card">
-									<img src={ p.UrlImagen } alt={ p.Nombre } class="pin-img"/>
-									<div class="pin-body">
-										<span class="tag">{ p.Categoria }</span>
-										<h4>{ p.Nombre }</h4>
-										<div class="pin-footer">
-											<span class="tags">ID: { fmt.Sprintf("%d", p.ID) }</span>
-											<button 
-												hx-delete={ fmt.Sprintf("/prendas/%d", p.ID) } 
-												hx-target="closest article" 
-												hx-swap="outerHTML" 
-												hx-confirm="¿Seguro que querés borrar esta prenda?"
-												class="btn-eliminar">
-												Borrar
-											</button>
-										</div>
-									</div>
-								</article>
-							}
-						</div>
-					}
+					@PrendasList(prendas)
 				}
 			</section>
 		}

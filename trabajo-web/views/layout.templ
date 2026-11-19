@@ -16,6 +16,42 @@ templ Layout(title string) {
 			<main class="container">
 				{ children... }
 			</main>
+
+			<!-- Modal de confirmación estilizado -->
+			<dialog id="confirm-modal" class="custom-modal">
+				<div class="modal-content">
+					<h3>OOTD 🛍️</h3>
+					<p id="confirm-modal-msg">¿Confirmás esta acción?</p>
+					<div class="modal-actions">
+						<button type="button" id="confirm-cancel" class="btn-modal-cancel">Cancelar</button>
+						<button type="button" id="confirm-accept" class="btn-modal-accept">Sí, borrar</button>
+					</div>
+				</div>
+			</dialog>
+
+			<script>
+				document.addEventListener("htmx:confirm", function (e) {
+					if (!e.detail.question) return;
+					e.preventDefault();
+
+					const modal = document.getElementById("confirm-modal");
+					const msg = document.getElementById("confirm-modal-msg");
+					const btnAccept = document.getElementById("confirm-accept");
+					const btnCancel = document.getElementById("confirm-cancel");
+
+					msg.textContent = e.detail.question;
+					modal.showModal();
+
+					btnAccept.onclick = function () {
+						modal.close();
+						e.detail.issueRequest(true);
+					};
+
+					btnCancel.onclick = function () {
+						modal.close();
+					};
+				});
+			</script>
 		</body>
 	</html>
 }

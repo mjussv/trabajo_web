@@ -62,17 +62,7 @@ templ PerfilUsuarioPage(
 								}
 								<div class="pin-footer">
 									if perfil.ID != viewer.ID {
-										<form action="/me-gusta/toggle-web" method="POST" style="margin:0;">
-											<input type="hidden" name="look_id" value={ fmt.Sprintf("%d", l.ID) }/>
-											<input type="hidden" name="redirect_to" value={ fmt.Sprintf("/perfil/%d", perfil.ID) }/>
-											<button type="submit" class={ "btn-like", templ.KV("liked", l.LeDioMeGusta) }>
-												if l.LeDioMeGusta {
-													❤️ Te gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
-												} else {
-													🤍 Me gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
-												}
-											</button>
-										</form>
+										@LikeButton(l.ID, l.LeDioMeGusta, l.TotalMeGusta)
 									} else {
 										<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) }</span>
 									}

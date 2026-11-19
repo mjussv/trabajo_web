@@ -41,7 +41,7 @@ func main() {
 	usuariosHdl := handlers.NewUsuariosHandler(usuariosSvc)
 	prendasHdl := handlers.NewPrendasHandler(prendasSvc, usuariosSvc, looksSvc)
 	looksHdl := handlers.NewLooksHandler(looksSvc, usuariosSvc, prendasSvc)
-	meGustaHdl := handlers.NewMeGustaLooksHandler(meGustaSvc)
+	meGustaHdl := handlers.NewMeGustaLooksHandler(meGustaSvc, looksSvc)
 
 	// configurar rutas
 	router := handlers.SetupRoutes(usuariosHdl, prendasHdl, looksHdl, meGustaHdl)

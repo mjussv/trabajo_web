@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	db "trabajo-web/db/sqlc"
 	"trabajo-web/logic"
 	"trabajo-web/views"
 )
@@ -28,7 +27,7 @@ func NewLooksHandler(
 }
 
 // ==========================================
-// MÉTODOS PARA VISTAS WEB (SSR + PRG + Cookie)
+// MÉTODOS PARA VISTAS WEB (SSR + HTMX + Cookie)
 // ==========================================
 
 func (h *LooksHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +58,7 @@ func (h *LooksHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error al crear look: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	looks, err := h.looksService.ListLooksPorUsuario(r.Context(), usuarioID, usuarioID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -88,7 +87,6 @@ func (h *LooksHandler) DeleteFromForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Look no encontrado", http.StatusNotFound)
 		return
 	}
-
 
 	if err := h.looksService.DeleteLooks(r.Context(), int32(id)); err != nil {
 		http.Error(w, "Error al eliminar look: "+err.Error(), http.StatusInternalServerError)

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"trabajo-web/logic"
+	"trabajo-web/views"
 )
 
 type UsuariosHandler struct {
@@ -18,7 +19,9 @@ func NewUsuariosHandler(service *logic.UsuariosService) *UsuariosHandler {
 // POST /usuarios/crear-web - Registro (form normal + cookie + redirect)
 func (h *UsuariosHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Formulario inválido", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		views.IndexPage(nil, nil, nil, "todos", "Formulario inválido.").Render(r.Context(), w)
 		return
 	}
 
@@ -28,7 +31,9 @@ func (h *UsuariosHandler) CreateFromForm(w http.ResponseWriter, r *http.Request)
 		Password: r.FormValue("password"),
 	})
 	if err != nil {
-		http.Error(w, "Error al crear el usuario: "+err.Error(), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		views.IndexPage(nil, nil, nil, "todos", "No se pudo crear la cuenta: ese nombre de usuario ya está en uso.").Render(r.Context(), w)
 		return
 	}
 

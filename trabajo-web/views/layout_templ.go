@@ -40,7 +40,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><!-- Enlace a tu CSS personalizado en static/css/styles.css --><link rel=\"stylesheet\" href=\"/static/css/styles.css\"></head><body><main class=\"container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><!-- Enlace a tu CSS personalizado en static/css/styles.css --><link rel=\"stylesheet\" href=\"/static/css/styles.css\"><!-- Script de HTMX agregado para la funcionalidad SPA --><script src=\"https://unpkg.com/htmx.org@2.0.0\"></script></head><body><main class=\"container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -48,7 +48,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><!-- Modal de confirmación estilizado --><dialog id=\"confirm-modal\" class=\"custom-modal\"><div class=\"modal-content\"><h3>OOTD 🛍️</h3><p id=\"confirm-modal-msg\">¿Confirmás esta acción?</p><div class=\"modal-actions\"><button type=\"button\" id=\"confirm-cancel\" class=\"btn-modal-cancel\">Cancelar</button> <button type=\"button\" id=\"confirm-accept\" class=\"btn-modal-accept\">Sí, borrar</button></div></div></dialog><script>\n\t\t\t\tdocument.addEventListener(\"htmx:confirm\", function (e) {\n\t\t\t\t\tif (!e.detail.question) return;\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tconst modal = document.getElementById(\"confirm-modal\");\n\t\t\t\t\tconst msg = document.getElementById(\"confirm-modal-msg\");\n\t\t\t\t\tconst btnAccept = document.getElementById(\"confirm-accept\");\n\t\t\t\t\tconst btnCancel = document.getElementById(\"confirm-cancel\");\n\n\t\t\t\t\tmsg.textContent = e.detail.question;\n\t\t\t\t\tmodal.showModal();\n\n\t\t\t\t\tbtnAccept.onclick = function () {\n\t\t\t\t\t\tmodal.close();\n\t\t\t\t\t\te.detail.issueRequest(true);\n\t\t\t\t\t};\n\n\t\t\t\t\tbtnCancel.onclick = function () {\n\t\t\t\t\t\tmodal.close();\n\t\t\t\t\t};\n\t\t\t\t});\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

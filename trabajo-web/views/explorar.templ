@@ -2,7 +2,6 @@ package views
 
 import (
 	"fmt"
-	"strconv"
 	db "trabajo-web/db/sqlc"
 )
 
@@ -40,7 +39,7 @@ templ ExplorarPage(
 
 		if tipo == "todos" || tipo == "" || tipo == "looks" {
 			<section class="card-lista">
-				<h2>✨ Looks de la Comunidad ({ strconv.Itoa(len(looks)) })</h2>
+				<h2>✨ Looks de la Comunidad</h2>
 				if len(looks) == 0 {
 					<p class="empty-msg">No se encontraron looks para esa búsqueda.</p>
 				} else {
@@ -71,19 +70,7 @@ templ ExplorarPage(
 									}
 									<div class="pin-footer">
 										if l.UsuarioID != viewer.ID {
-												<button 
-													type="button" 
-													class={ "btn-like", templ.KV("liked", l.LeDioMeGusta) }
-													hx-post="/me-gusta/toggle-web"
-													hx-vals={ fmt.Sprintf(`{"look_id": "%d"}`, l.ID) }
-													hx-target="this"
-													hx-swap="outerHTML">
-													if l.LeDioMeGusta {
-														❤️ Te gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
-													} else {
-														🤍 Me gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
-													}
-												</button>
+											@LikeButton(l.ID, l.LeDioMeGusta, l.TotalMeGusta)
 										} else {
 											<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) } (Tuyo)</span>
 										}
@@ -98,7 +85,7 @@ templ ExplorarPage(
 
 		if tipo == "todos" || tipo == "" || tipo == "prendas" {
 			<section class="card-lista">
-				<h2>👕 Prendas en la Red ({ strconv.Itoa(len(prendas)) })</h2>
+				<h2>👕 Prendas en la Red</h2>
 				if len(prendas) == 0 {
 					<p class="empty-msg">No se encontraron prendas para esa búsqueda.</p>
 				} else {

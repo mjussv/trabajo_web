@@ -26,7 +26,7 @@ func EntityForm() templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"card-form\"><h2>Agregar Nueva Prenda</h2><form id=\"form-prenda\" action=\"/prendas/crear-web\" method=\"POST\"><input type=\"number\" id=\"usuario_id\" name=\"usuario_id\" placeholder=\"ID de Usuario\" required> <input type=\"text\" id=\"nombre\" name=\"nombre\" placeholder=\"Nombre (ej: Remera Oversize)\" required> <input type=\"text\" id=\"categoria\" name=\"categoria\" placeholder=\"Categoría (ej: Casual, Noche)\" required> <button type=\"submit\">Cargar a Clóset</button></form></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"card-form\"><h2>Agregar Nueva Prenda</h2><form id=\"form-prenda\" hx-post=\"/prendas/crear-web\" hx-target=\"#lista-prendas\" hx-swap=\"outerHTML\"><input type=\"number\" id=\"usuario_id\" name=\"usuario_id\" placeholder=\"ID de Usuario\" required> <input type=\"text\" id=\"nombre\" name=\"nombre\" placeholder=\"Nombre (ej: Remera Oversize)\" required> <input type=\"text\" id=\"categoria\" name=\"categoria\" placeholder=\"Categoría (ej: Casual, Noche)\" required> <button type=\"submit\">Cargar a Clóset</button></form></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

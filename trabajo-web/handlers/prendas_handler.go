@@ -60,7 +60,6 @@ func (h *PrendasHandler) IndexPage(w http.ResponseWriter, r *http.Request) {
 
 	usuario, errUser := h.usuariosService.GetUsuariosByID(r.Context(), usuarioID)
 	if errUser != nil {
-		// Si la cookie apunta a un usuario borrado, invalidamos la cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_user_id",
 			Value:    "",
@@ -127,11 +126,11 @@ func (h *PrendasHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// POST /prendas - Crea prenda para el usuario autenticado en sesión
+// POST /prendas - Crea prenda y devuelve la grilla + el select OOB actualizado
 func (h *PrendasHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
 	usuarioID, logueado := obtenerUsuarioDeSesion(r)
 	if !logueado {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		w.Header().Set("HX-Redirect", "/")
 		return
 	}
 
@@ -141,38 +140,53 @@ func (h *PrendasHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) 
 	}
 
 	_, err := h.prendasService.CreatePrendas(r.Context(), logic.CreatePrendasParams{
-		UsuarioID: usuarioID
-		Nombre := r.FormValue("nombre")
-		Categoria := r.FormValue("categoria")
-		UrlImagen := r.FormValue("url_imagen")
+		UsuarioID: usuarioID,
+		Nombre:    r.FormValue("nombre"),
+		Categoria: r.FormValue("categoria"),
+		UrlImagen: r.FormValue("url_imagen"),
 	})
 	if err != nil {
 		http.Error(w, "Error al guardar la prenda: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-// POST /prendas/eliminar - Elimina prenda verificando sesión
-func (h *PrendasHandler) DeleteFromForm(w http.ResponseWriter, r *http.Request) {
-	_, logueado := obtenerUsuarioDeSesion(r)
-	if !logueado {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	prendas, err := h.prendasService.ListPrendasPorUsuario(r.Context(), usuarioID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	views.PrendasList(prendas).Render(r.Context(), w)
+	views.PrendasSelect(prendas, true).Render(r.Context(), w)
+}
+
+// DELETE /prendas/{id} - Elimina prenda y actualiza el select OOB
+func (h *PrendasHandler) DeleteFromForm(w http.ResponseWriter, r *http.Request) {
+	usuarioID, logueado := obtenerUsuarioDeSesion(r)
+	if !logueado {
+		w.Header().Set("HX-Redirect", "/")
+		return
+	}
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}
 
-	id, _ := strconv.Atoi(r.FormValue("id"))
+	prenda, err := h.prendasService.GetPrendasByID(r.Context(), int32(id))
+	if err != nil || prenda.UsuarioID != usuarioID {
+		http.Error(w, "Prenda no encontrada", http.StatusNotFound)
+		return
+	}
 
 	if err := h.prendasService.DeletePrendas(r.Context(), int32(id)); err != nil {
 		http.Error(w, "Error al eliminar la prenda: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	prendas, _ := h.prendasService.ListPrendasPorUsuario(r.Context(), usuarioID)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	views.PrendasSelect(prendas, true).Render(r.Context(), w)
 }

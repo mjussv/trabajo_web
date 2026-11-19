@@ -1,0 +1,36 @@
+package views
+
+import (
+	"fmt"
+	db "trabajo-web/db/sqlc"
+)
+
+templ EntityList(prendas []db.Prenda) {
+	<section class="card-lista">
+		<h2>Tu Guardarropa Digital</h2>
+		if len(prendas) == 0 {
+			<p>No hay prendas registradas aún.</p>
+		} else {
+			<ul class="lista-container">
+				for _, p := range prendas {
+					<li class="item-prenda">
+						<div class="item-info">
+							<strong>{ p.Nombre }</strong>
+							<p>Categoría: { p.Categoria }</p>
+							<span class="tags">ID Usuario: { fmt.Sprintf("%d", p.UsuarioID) }</span>
+						</div>
+						<button
+                            class="btn-eliminar"
+                            hx-delete={ fmt.Sprit("/prendas/%", p.ID)}
+                            hx-target="closest li"
+                            hx-swap="outerHTML"
+                            hx-confirm="¿Seguro que querés elimimar esta prenda?"
+                        >
+                            Eliminar
+                        </button>
+					</li>
+				}
+			</ul>
+		}
+	</section>
+}

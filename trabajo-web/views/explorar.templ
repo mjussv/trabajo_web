@@ -71,17 +71,19 @@ templ ExplorarPage(
 									}
 									<div class="pin-footer">
 										if l.UsuarioID != viewer.ID {
-											<form action="/me-gusta/toggle-web" method="POST" style="margin:0;">
-												<input type="hidden" name="look_id" value={ fmt.Sprintf("%d", l.ID) }/>
-												<input type="hidden" name="redirect_to" value={ fmt.Sprintf("/explorar?q=%s&tipo=%s", query, tipo) }/>
-												<button type="submit" class={ "btn-like", templ.KV("liked", l.LeDioMeGusta) }>
+												<button 
+													type="button" 
+													class={ "btn-like", templ.KV("liked", l.LeDioMeGusta) }
+													hx-post="/me-gusta/toggle-web"
+													hx-vals={ fmt.Sprintf(`{"look_id": "%d"}`, l.ID) }
+													hx-target="this"
+													hx-swap="outerHTML">
 													if l.LeDioMeGusta {
 														❤️ Te gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
 													} else {
 														🤍 Me gusta ({ fmt.Sprintf("%d", l.TotalMeGusta) })
 													}
 												</button>
-											</form>
 										} else {
 											<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) } (Tuyo)</span>
 										}

@@ -142,9 +142,10 @@ func (h *PrendasHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) 
 	}
 
 	usuario, err := h.prendasService.CreatePrendas(r.Context(), logic.CreatePrendasParams{
-		nombre := r.FormValue("nombre")
-		categoria := r.FormValue("categoria")
-		urlImagen := r.FormValue("url_imagen")
+		UsuarioID: usuarioID
+		Nombre := r.FormValue("nombre")
+		Categoria := r.FormValue("categoria")
+		UrlImagen := r.FormValue("url_imagen")
 	})
 	if err != nil {
 		http.Error(w, "Error al guardar la prenda: "+err.Error(), http.StatusBadRequest)

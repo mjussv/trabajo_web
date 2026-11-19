@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -79,7 +78,7 @@ func (h *LooksHandler) DeleteFromForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := strconv.Atoi(r.PathValue("id"))
-	if err := r.ParseForm(); err != nil {
+	if err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}

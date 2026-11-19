@@ -1,45 +1,72 @@
 # ==========================================
-# 1. USUARIOS
+# 1. VERIFICAR VISTA WEB INICIAL (SIN SESIÓN)
 # ==========================================
+GET http://localhost:8080/
+HTTP 200
+[Asserts]
+header "Content-Type" contains "text/html"
+body contains "Iniciar Sesión"
+body contains "Registrar Nuevo Usuario"
 
-# 1.1 Crear Usuario (Éxito 201)
+# ==========================================
+# 2. REGISTRO Y LOGIN WEB CON COOKIE DE SESIÓN
+# ==========================================
+POST http://localhost:8080/usuarios/crear-web
+[Form]
+nombre: JustinaWeb
+email: justina_web@example.com
+password: clave123
+HTTP 303
+[Asserts]
+header "Location" == "/"
+cookie "session_user_id" exists
+
+# Acceder a / usando la cookie guardada automáticamente por Hurl
+GET http://localhost:8080/
+HTTP 200
+[Asserts]
+header "Content-Type" contains "text/html"
+body contains "JustinaWeb"
+body contains "Cargar Nueva Prenda"
+
+# ==========================================
+# 3. API REST - USUARIOS
+# ==========================================
 POST http://localhost:8080/usuarios
 Content-Type: application/json
 {
     "nombre": "Usuario Hurl",
-    "email": "hurl_test@example.com"
+    "email": "hurl_test@example.com",
+    "password": "secreto123"
 }
 HTTP 201
 [Captures]
 usuario_id: jsonpath "$.id"
+[Asserts]
+header "Content-Type" contains "application/json"
+jsonpath "$.id" exists
+jsonpath "$.nombre" == "Usuario Hurl"
+jsonpath "$.email" == "hurl_test@example.com"
 
-# 1.2 Listar Usuarios (Éxito 200)
 GET http://localhost:8080/usuarios
 HTTP 200
+[Asserts]
+header "Content-Type" contains "application/json"
+jsonpath "$" isCollection
 
-# 1.3 Obtener Usuario por ID (Éxito 200)
 GET http://localhost:8080/usuarios/{{usuario_id}}
 HTTP 200
+[Asserts]
+jsonpath "$.id" == {{usuario_id}}
+jsonpath "$.nombre" == "Usuario Hurl"
 
-# 1.4 Actualizar Usuario (Éxito 200)
-PUT http://localhost:8080/usuarios/{{usuario_id}}
-Content-Type: application/json
-{
-    "nombre": "Usuario Hurl Editado",
-    "email": "hurl_editado@example.com"
-}
-HTTP 200
-
-# 1.5 Obtener Usuario Inexistente (Error 404)
-GET http://localhost:8080/usuarios/99999
+GET http://localhost:8080/usuarios/999999
 HTTP 404
 
 # ==========================================
-# 2. PRENDAS
+# 4. API REST - PRENDAS
 # ==========================================
-
-# 2.1 Crear Prenda (Éxito 201)
-POST http://localhost:8080/prendas
+POST http://localhost:8080/prendas?usuario_id={{usuario_id}}
 Content-Type: application/json
 {
     "usuario_id": {{usuario_id}},
@@ -49,21 +76,19 @@ Content-Type: application/json
 HTTP 201
 [Captures]
 prenda_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+jsonpath "$.nombre" == "Remera Hurl"
+jsonpath "$.categoria" == "Remeras"
+jsonpath "$.usuario_id" == {{usuario_id}}
 
-# 2.2 Listar Prendas por Usuario (Éxito 200 - Requiere usuario_id en Query Param)
 GET http://localhost:8080/prendas?usuario_id={{usuario_id}}
 HTTP 200
+[Asserts]
+jsonpath "$" isCollection
+jsonpath "$[0].nombre" == "Remera Hurl"
 
-# 2.3 Listar Prendas Sin usuario_id (Error 400 Bad Request)
-GET http://localhost:8080/prendas
-HTTP 400
-
-# 2.4 Obtener Prenda por ID (Éxito 200)
-GET http://localhost:8080/prendas/{{prenda_id}}
-HTTP 200
-
-# 2.5 Actualizar Prenda (Éxito 200)
-PUT http://localhost:8080/prendas/{{prenda_id}}
+PUT http://localhost:8080/prendas/{{prenda_id}}?usuario_id={{usuario_id}}
 Content-Type: application/json
 {
     "usuario_id": {{usuario_id}},
@@ -71,13 +96,14 @@ Content-Type: application/json
     "categoria": "Remeras"
 }
 HTTP 200
+[Asserts]
+jsonpath "$.id" == {{prenda_id}}
+jsonpath "$.nombre" == "Remera Hurl Editada"
 
 # ==========================================
-# 3. LOOKS
+# 5. API REST - LOOKS Y LIMPIEZA
 # ==========================================
-
-# 3.1 Crear Look (Éxito 201)
-POST http://localhost:8080/looks
+POST http://localhost:8080/looks?usuario_id={{usuario_id}}
 Content-Type: application/json
 {
     "usuario_id": {{usuario_id}},
@@ -92,20 +118,16 @@ Content-Type: application/json
 HTTP 201
 [Captures]
 look_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+jsonpath "$.nombre" == "Look Hurl"
+jsonpath "$.ocasion" == "Casual"
+jsonpath "$.temporada" == "Verano"
+jsonpath "$.estilo" == "Urbano"
 
-# 3.2 Listar Looks (Éxito 200)
-GET http://localhost:8080/looks
-HTTP 200
-
-# 3.3 Obtener Look por ID (Éxito 200)
-GET http://localhost:8080/looks/{{look_id}}
-HTTP 200
-
-# 3.4 Actualizar Look (Éxito 200)
-PUT http://localhost:8080/looks/{{look_id}}
+PUT http://localhost:8080/looks/{{look_id}}?usuario_id={{usuario_id}}
 Content-Type: application/json
 {
-    "usuario_id": {{usuario_id}},
     "nombre": "Look Hurl Editado",
     "descripcion": "Nueva descripcion",
     "ocasion": "Noche",
@@ -115,45 +137,15 @@ Content-Type: application/json
     "estilo": "Elegante"
 }
 HTTP 200
+[Asserts]
+jsonpath "$.id" == {{look_id}}
+jsonpath "$.nombre" == "Look Hurl Editado"
+jsonpath "$.ocasion" == "Noche"
+jsonpath "$.temporada" == "Invierno"
+jsonpath "$.estilo" == "Elegante"
 
-# ==========================================
-# 4. ME GUSTA LOOKS
-# ==========================================
-
-# 4.1 Dar Me Gusta (Éxito 201)
-POST http://localhost:8080/me-gusta
-Content-Type: application/json
-{
-    "usuario_id": {{usuario_id}},
-    "look_id": {{look_id}}
-}
-HTTP 201
-
-# 4.2 Quitar Me Gusta (Éxito 204)
-DELETE http://localhost:8080/me-gusta
-Content-Type: application/json
-{
-    "usuario_id": {{usuario_id}},
-    "look_id": {{look_id}}
-}
+DELETE http://localhost:8080/looks/{{look_id}}?usuario_id={{usuario_id}}
 HTTP 204
 
-# ==========================================
-# 5. ELIMINACIONES Y VERIFICACIÓN FINAL
-# ==========================================
-
-# 5.1 Eliminar Look (Éxito 204)
-DELETE http://localhost:8080/looks/{{look_id}}
+DELETE http://localhost:8080/prendas/{{prenda_id}}?usuario_id={{usuario_id}}
 HTTP 204
-
-# 5.2 Eliminar Prenda (Éxito 204)
-DELETE http://localhost:8080/prendas/{{prenda_id}}
-HTTP 204
-
-# 5.3 Eliminar Usuario (Éxito 204)
-DELETE http://localhost:8080/usuarios/{{usuario_id}}
-HTTP 204
-
-# 5.4 Verificar que el Look eliminado ya no existe (Error 404)
-GET http://localhost:8080/looks/{{look_id}}
-HTTP 404

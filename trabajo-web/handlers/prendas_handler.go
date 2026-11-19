@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	db "trabajo-web/db/sqlc"
 	"trabajo-web/logic"
 	"trabajo-web/views"
 )
@@ -13,49 +12,76 @@ import (
 type PrendasHandler struct {
 	prendasService  *logic.PrendasService
 	usuariosService *logic.UsuariosService
+	looksService    *logic.LooksService
 }
 
-func NewPrendasHandler(service *logic.PrendasService, usuariosService *logic.UsuariosService) *PrendasHandler {
+func NewPrendasHandler(
+	service *logic.PrendasService,
+	usuariosService *logic.UsuariosService,
+	looksService *logic.LooksService,
+) *PrendasHandler {
 	return &PrendasHandler{
 		prendasService:  service,
 		usuariosService: usuariosService,
+		looksService:    looksService,
 	}
 }
 
+// Helper interno para leer el usuario autenticado desde la cookie de sesión
+func obtenerUsuarioDeSesion(r *http.Request) (int32, bool) {
+	cookie, err := r.Cookie("session_user_id")
+	if err != nil || cookie.Value == "" {
+		return 0, false
+	}
+	id, err := strconv.Atoi(cookie.Value)
+	if err != nil || id <= 0 {
+		return 0, false
+	}
+	return int32(id), true
+}
+
+// GET / - Muestra Login/Registro si no hay sesión, o el Guardarropa si hay cookie válida
 func (h *PrendasHandler) IndexPage(w http.ResponseWriter, r *http.Request) {
-	usuarioIDStr := r.URL.Query().Get("usuario_id")
-
-	if usuarioIDStr == "" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		views.IndexPage(nil, nil, "").Render(r.Context(), w)
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
 		return
 	}
 
-	usuarioID, err := strconv.Atoi(usuarioIDStr)
-	if err != nil || usuarioID <= 0 {
+	filtro := r.URL.Query().Get("filtro")
+	if filtro == "" {
+		filtro = "todos"
+	}
+
+	usuarioID, logueado := obtenerUsuarioDeSesion(r)
+	if !logueado {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		views.IndexPage(nil, nil, "ID de usuario inválido").Render(r.Context(), w)
+		views.IndexPage(nil, nil, nil, filtro, "").Render(r.Context(), w)
 		return
 	}
 
-	usuario, errUser := h.usuariosService.GetUsuariosByID(r.Context(), int32(usuarioID))
+	usuario, errUser := h.usuariosService.GetUsuariosByID(r.Context(), usuarioID)
 	if errUser != nil {
+		// Si la cookie apunta a un usuario borrado, invalidamos la cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_user_id",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+		})
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		views.IndexPage(nil, nil, "El usuario no existe.").Render(r.Context(), w)
+		views.IndexPage(nil, nil, nil, filtro, "Sesión expirada. Volvé a ingresar.").Render(r.Context(), w)
 		return
 	}
 
-	prendas, errPrendas := h.prendasService.ListPrendasPorUsuario(r.Context(), int32(usuarioID))
-	if errPrendas != nil {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		views.IndexPage(&usuario, nil, "Error al cargar las prendas").Render(r.Context(), w)
-		return
-	}
+	prendas, _ := h.prendasService.ListPrendasPorUsuario(r.Context(), usuarioID)
+	looks, _ := h.looksService.ListLooksPorUsuario(r.Context(), usuarioID, usuarioID)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	views.IndexPage(&usuario, prendas, "").Render(r.Context(), w)
+	views.IndexPage(&usuario, prendas, looks, filtro, "").Render(r.Context(), w)
 }
 
+// POST /login - Valida credenciales y crea cookie de sesión
 func (h *PrendasHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Formulario inválido", http.StatusBadRequest)
@@ -68,77 +94,97 @@ func (h *PrendasHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if nombre == "" || password == "" {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusBadRequest)
-		views.IndexPage(nil, nil, "Por favor completa usuario y contraseña").Render(r.Context(), w)
+		views.IndexPage(nil, nil, nil, "todos", "Por favor completá usuario y contraseña.").Render(r.Context(), w)
 		return
 	}
 
 	usuario, errUser := h.usuariosService.GetUsuariosByNombre(r.Context(), nombre)
-	if errUser != nil {
+	if errUser != nil || usuario.Password != password {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusBadRequest)
-		views.IndexPage(nil, nil, "Usuario o contraseña incorrectos.").Render(r.Context(), w)
+		w.WriteHeader(http.StatusUnauthorized)
+		views.IndexPage(nil, nil, nil, "todos", "Usuario o contraseña incorrectos.").Render(r.Context(), w)
 		return
 	}
 
-	if usuario.Password != password {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusBadRequest)
-		views.IndexPage(nil, nil, "Usuario o contraseña incorrectos.").Render(r.Context(), w)
-		return
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_user_id",
+		Value:    strconv.Itoa(int(usuario.ID)),
+		Path:     "/",
+		HttpOnly: true,
+	})
 
-	http.Redirect(w, r, "/?usuario_id="+strconv.Itoa(int(usuario.ID)), http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// GET /logout - Cierra sesión eliminando la cookie
+func (h *PrendasHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_user_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// POST /prendas - Crea prenda para el usuario autenticado en sesión
 func (h *PrendasHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
+	usuarioID, logueado := obtenerUsuarioDeSesion(r)
+	if !logueado {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Formulario inválido", http.StatusBadRequest)
 		return
 	}
 
-	usuarioID, errID := strconv.Atoi(r.FormValue("usuario_id"))
-	if errID != nil || usuarioID <= 0 {
-		http.Error(w, "ID de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
 	nombre := r.FormValue("nombre")
 	categoria := r.FormValue("categoria")
+	urlImagen := r.FormValue("url_imagen")
 
 	_, err := h.prendasService.CreatePrendas(r.Context(), logic.CreatePrendasParams{
-		UsuarioID: int32(usuarioID),
+		UsuarioID: usuarioID,
 		Nombre:    nombre,
 		Categoria: categoria,
+		UrlImagen: urlImagen,
 	})
 	if err != nil {
 		http.Error(w, "Error al guardar la prenda: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/?usuario_id="+strconv.Itoa(usuarioID), http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// POST /prendas/eliminar - Elimina prenda verificando sesión
 func (h *PrendasHandler) DeleteFromForm(w http.ResponseWriter, r *http.Request) {
+	_, logueado := obtenerUsuarioDeSesion(r)
+	if !logueado {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}
 
-	id, errID := strconv.Atoi(r.FormValue("id"))
-	if errID != nil || id <= 0 {
-		http.Error(w, "ID de prenda inválido", http.StatusBadRequest)
-		return
-	}
-
-	usuarioIDStr := r.FormValue("usuario_id")
+	id, _ := strconv.Atoi(r.FormValue("id"))
 
 	if err := h.prendasService.DeletePrendas(r.Context(), int32(id)); err != nil {
 		http.Error(w, "Error al eliminar la prenda: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/?usuario_id="+usuarioIDStr, http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+// ==========================================
+// MÉTODOS API REST (JSON)
+// ==========================================
 
 func (h *PrendasHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var params logic.CreatePrendasParams
@@ -170,10 +216,6 @@ func (h *PrendasHandler) List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if prendas == nil {
-		prendas = []db.Prenda{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

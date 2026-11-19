@@ -39,8 +39,8 @@ func main() {
 
 	// capa HTTP (handlers)
 	usuariosHdl := handlers.NewUsuariosHandler(usuariosSvc)
-	prendasHdl := handlers.NewPrendasHandler(prendasSvc, usuariosSvc)
-	looksHdl := handlers.NewLooksHandler(looksSvc)
+	prendasHdl := handlers.NewPrendasHandler(prendasSvc, usuariosSvc, looksSvc)
+	looksHdl := handlers.NewLooksHandler(looksSvc, usuariosSvc, prendasSvc)
 	meGustaHdl := handlers.NewMeGustaLooksHandler(meGustaSvc)
 
 	// configurar rutas

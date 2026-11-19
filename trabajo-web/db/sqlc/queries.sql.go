@@ -65,16 +65,18 @@ const actualizarPrenda = `-- name: ActualizarPrenda :one
 UPDATE prendas
 SET usuario_id = $2,
     nombre = $3,
-    categoria = $4
+    categoria = $4,
+    url_imagen = COALESCE(NULLIF($5, ''), url_imagen)
 WHERE id = $1
-RETURNING id, usuario_id, nombre, categoria, fecha_creacion
+RETURNING id, usuario_id, nombre, categoria, url_imagen, fecha_creacion
 `
 
 type ActualizarPrendaParams struct {
-	ID        int32  `json:"id"`
-	UsuarioID int32  `json:"usuario_id"`
-	Nombre    string `json:"nombre"`
-	Categoria string `json:"categoria"`
+	ID        int32       `json:"id"`
+	UsuarioID int32       `json:"usuario_id"`
+	Nombre    string      `json:"nombre"`
+	Categoria string      `json:"categoria"`
+	Column5   interface{} `json:"column_5"`
 }
 
 func (q *Queries) ActualizarPrenda(ctx context.Context, arg ActualizarPrendaParams) (Prenda, error) {
@@ -83,6 +85,7 @@ func (q *Queries) ActualizarPrenda(ctx context.Context, arg ActualizarPrendaPara
 		arg.UsuarioID,
 		arg.Nombre,
 		arg.Categoria,
+		arg.Column5,
 	)
 	var i Prenda
 	err := row.Scan(
@@ -90,6 +93,7 @@ func (q *Queries) ActualizarPrenda(ctx context.Context, arg ActualizarPrendaPara
 		&i.UsuarioID,
 		&i.Nombre,
 		&i.Categoria,
+		&i.UrlImagen,
 		&i.FechaCreacion,
 	)
 	return i, err
@@ -120,6 +124,137 @@ func (q *Queries) ActualizarUsuario(ctx context.Context, arg ActualizarUsuarioPa
 		&i.FechaCreacion,
 	)
 	return i, err
+}
+
+const buscarLooks = `-- name: BuscarLooks :many
+SELECT
+    l.id, l.usuario_id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
+    u.nombre AS autora,
+    p.nombre AS prenda_estrella,
+    (SELECT COUNT(*) FROM me_gusta_looks mg WHERE mg.look_id = l.id) AS total_me_gusta,
+    EXISTS(SELECT 1 FROM me_gusta_looks mg WHERE mg.look_id = l.id AND mg.usuario_id = $1) AS le_dio_me_gusta
+FROM looks l
+JOIN usuarios u ON l.usuario_id = u.id
+LEFT JOIN prendas p ON l.prenda_estrella_id = p.id
+WHERE l.nombre ILIKE '%' || $2 || '%'
+   OR COALESCE(l.descripcion, '') ILIKE '%' || $2 || '%'
+   OR l.ocasion ILIKE '%' || $2 || '%'
+   OR l.temporada ILIKE '%' || $2 || '%'
+   OR COALESCE(l.estilo, '') ILIKE '%' || $2 || '%'
+   OR COALESCE(p.nombre, '') ILIKE '%' || $2 || '%'
+   OR u.nombre ILIKE '%' || $2 || '%'
+ORDER BY l.fecha_creacion DESC
+`
+
+type BuscarLooksParams struct {
+	UsuarioID int32          `json:"usuario_id"`
+	Column2   sql.NullString `json:"column_2"`
+}
+
+type BuscarLooksRow struct {
+	ID             int32          `json:"id"`
+	UsuarioID      int32          `json:"usuario_id"`
+	Nombre         string         `json:"nombre"`
+	Descripcion    sql.NullString `json:"descripcion"`
+	Ocasion        string         `json:"ocasion"`
+	Temporada      string         `json:"temporada"`
+	UrlImagen      string         `json:"url_imagen"`
+	Estilo         sql.NullString `json:"estilo"`
+	FechaCreacion  sql.NullTime   `json:"fecha_creacion"`
+	Autora         string         `json:"autora"`
+	PrendaEstrella sql.NullString `json:"prenda_estrella"`
+	TotalMeGusta   int64          `json:"total_me_gusta"`
+	LeDioMeGusta   bool           `json:"le_dio_me_gusta"`
+}
+
+func (q *Queries) BuscarLooks(ctx context.Context, arg BuscarLooksParams) ([]BuscarLooksRow, error) {
+	rows, err := q.db.QueryContext(ctx, buscarLooks, arg.UsuarioID, arg.Column2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BuscarLooksRow
+	for rows.Next() {
+		var i BuscarLooksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UsuarioID,
+			&i.Nombre,
+			&i.Descripcion,
+			&i.Ocasion,
+			&i.Temporada,
+			&i.UrlImagen,
+			&i.Estilo,
+			&i.FechaCreacion,
+			&i.Autora,
+			&i.PrendaEstrella,
+			&i.TotalMeGusta,
+			&i.LeDioMeGusta,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const buscarPrendas = `-- name: BuscarPrendas :many
+SELECT
+    p.id, p.usuario_id, p.nombre, p.categoria, p.url_imagen, p.fecha_creacion,
+    u.nombre AS autora
+FROM prendas p
+JOIN usuarios u ON p.usuario_id = u.id
+WHERE p.nombre ILIKE '%' || $1 || '%'
+   OR p.categoria ILIKE '%' || $1 || '%'
+   OR u.nombre ILIKE '%' || $1 || '%'
+ORDER BY p.fecha_creacion DESC
+`
+
+type BuscarPrendasRow struct {
+	ID            int32        `json:"id"`
+	UsuarioID     int32        `json:"usuario_id"`
+	Nombre        string       `json:"nombre"`
+	Categoria     string       `json:"categoria"`
+	UrlImagen     string       `json:"url_imagen"`
+	FechaCreacion sql.NullTime `json:"fecha_creacion"`
+	Autora        string       `json:"autora"`
+}
+
+func (q *Queries) BuscarPrendas(ctx context.Context, dollar_1 sql.NullString) ([]BuscarPrendasRow, error) {
+	rows, err := q.db.QueryContext(ctx, buscarPrendas, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BuscarPrendasRow
+	for rows.Next() {
+		var i BuscarPrendasRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UsuarioID,
+			&i.Nombre,
+			&i.Categoria,
+			&i.UrlImagen,
+			&i.FechaCreacion,
+			&i.Autora,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const contarMeGustaPorLook = `-- name: ContarMeGustaPorLook :one
@@ -183,24 +318,33 @@ func (q *Queries) CrearLook(ctx context.Context, arg CrearLookParams) (Look, err
 
 const crearPrenda = `-- name: CrearPrenda :one
 
-INSERT INTO prendas (usuario_id, nombre, categoria) VALUES ($1, $2, $3) RETURNING id, usuario_id, nombre, categoria, fecha_creacion
+INSERT INTO prendas (usuario_id, nombre, categoria, url_imagen)
+VALUES ($1, $2, $3, COALESCE(NULLIF($4, ''), 'https://placehold.co/400x500/F8E8A2/3C132C?text=Prenda'))
+RETURNING id, usuario_id, nombre, categoria, url_imagen, fecha_creacion
 `
 
 type CrearPrendaParams struct {
-	UsuarioID int32  `json:"usuario_id"`
-	Nombre    string `json:"nombre"`
-	Categoria string `json:"categoria"`
+	UsuarioID int32       `json:"usuario_id"`
+	Nombre    string      `json:"nombre"`
+	Categoria string      `json:"categoria"`
+	Column4   interface{} `json:"column_4"`
 }
 
 // ===== PRENDAS =====
 func (q *Queries) CrearPrenda(ctx context.Context, arg CrearPrendaParams) (Prenda, error) {
-	row := q.db.QueryRowContext(ctx, crearPrenda, arg.UsuarioID, arg.Nombre, arg.Categoria)
+	row := q.db.QueryRowContext(ctx, crearPrenda,
+		arg.UsuarioID,
+		arg.Nombre,
+		arg.Categoria,
+		arg.Column4,
+	)
 	var i Prenda
 	err := row.Scan(
 		&i.ID,
 		&i.UsuarioID,
 		&i.Nombre,
 		&i.Categoria,
+		&i.UrlImagen,
 		&i.FechaCreacion,
 	)
 	return i, err
@@ -342,9 +486,11 @@ func (q *Queries) LimpiarClosetPorUsuario(ctx context.Context, usuarioID int32) 
 
 const listarLooksConDetalle = `-- name: ListarLooksConDetalle :many
 SELECT
-    l.id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
+    l.id, l.usuario_id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
     u.nombre AS autora,
-    p.nombre AS prenda_estrella
+    p.nombre AS prenda_estrella,
+    (SELECT COUNT(*) FROM me_gusta_looks mg WHERE mg.look_id = l.id) AS total_me_gusta,
+    EXISTS(SELECT 1 FROM me_gusta_looks mg WHERE mg.look_id = l.id AND mg.usuario_id = $1) AS le_dio_me_gusta
 FROM looks l
 JOIN usuarios u ON l.usuario_id = u.id
 LEFT JOIN prendas p ON l.prenda_estrella_id = p.id
@@ -353,6 +499,7 @@ ORDER BY l.fecha_creacion DESC
 
 type ListarLooksConDetalleRow struct {
 	ID             int32          `json:"id"`
+	UsuarioID      int32          `json:"usuario_id"`
 	Nombre         string         `json:"nombre"`
 	Descripcion    sql.NullString `json:"descripcion"`
 	Ocasion        string         `json:"ocasion"`
@@ -362,10 +509,12 @@ type ListarLooksConDetalleRow struct {
 	FechaCreacion  sql.NullTime   `json:"fecha_creacion"`
 	Autora         string         `json:"autora"`
 	PrendaEstrella sql.NullString `json:"prenda_estrella"`
+	TotalMeGusta   int64          `json:"total_me_gusta"`
+	LeDioMeGusta   bool           `json:"le_dio_me_gusta"`
 }
 
-func (q *Queries) ListarLooksConDetalle(ctx context.Context) ([]ListarLooksConDetalleRow, error) {
-	rows, err := q.db.QueryContext(ctx, listarLooksConDetalle)
+func (q *Queries) ListarLooksConDetalle(ctx context.Context, usuarioID int32) ([]ListarLooksConDetalleRow, error) {
+	rows, err := q.db.QueryContext(ctx, listarLooksConDetalle, usuarioID)
 	if err != nil {
 		return nil, err
 	}
@@ -375,6 +524,7 @@ func (q *Queries) ListarLooksConDetalle(ctx context.Context) ([]ListarLooksConDe
 		var i ListarLooksConDetalleRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.UsuarioID,
 			&i.Nombre,
 			&i.Descripcion,
 			&i.Ocasion,
@@ -384,6 +534,8 @@ func (q *Queries) ListarLooksConDetalle(ctx context.Context) ([]ListarLooksConDe
 			&i.FechaCreacion,
 			&i.Autora,
 			&i.PrendaEstrella,
+			&i.TotalMeGusta,
+			&i.LeDioMeGusta,
 		); err != nil {
 			return nil, err
 		}
@@ -480,9 +632,11 @@ func (q *Queries) ListarLooksPorPrenda(ctx context.Context, dollar_1 sql.NullStr
 
 const listarLooksPorUsuario = `-- name: ListarLooksPorUsuario :many
 SELECT
-    l.id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
+    l.id, l.usuario_id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
     u.nombre AS autora,
-    p.nombre AS prenda_estrella
+    p.nombre AS prenda_estrella,
+    (SELECT COUNT(*) FROM me_gusta_looks mg WHERE mg.look_id = l.id) AS total_me_gusta,
+    EXISTS(SELECT 1 FROM me_gusta_looks mg WHERE mg.look_id = l.id AND mg.usuario_id = $2) AS le_dio_me_gusta
 FROM looks l
 JOIN usuarios u ON l.usuario_id = u.id
 LEFT JOIN prendas p ON l.prenda_estrella_id = p.id
@@ -490,8 +644,14 @@ WHERE l.usuario_id = $1
 ORDER BY l.fecha_creacion DESC
 `
 
+type ListarLooksPorUsuarioParams struct {
+	UsuarioID   int32 `json:"usuario_id"`
+	UsuarioID_2 int32 `json:"usuario_id_2"`
+}
+
 type ListarLooksPorUsuarioRow struct {
 	ID             int32          `json:"id"`
+	UsuarioID      int32          `json:"usuario_id"`
 	Nombre         string         `json:"nombre"`
 	Descripcion    sql.NullString `json:"descripcion"`
 	Ocasion        string         `json:"ocasion"`
@@ -501,10 +661,12 @@ type ListarLooksPorUsuarioRow struct {
 	FechaCreacion  sql.NullTime   `json:"fecha_creacion"`
 	Autora         string         `json:"autora"`
 	PrendaEstrella sql.NullString `json:"prenda_estrella"`
+	TotalMeGusta   int64          `json:"total_me_gusta"`
+	LeDioMeGusta   bool           `json:"le_dio_me_gusta"`
 }
 
-func (q *Queries) ListarLooksPorUsuario(ctx context.Context, usuarioID int32) ([]ListarLooksPorUsuarioRow, error) {
-	rows, err := q.db.QueryContext(ctx, listarLooksPorUsuario, usuarioID)
+func (q *Queries) ListarLooksPorUsuario(ctx context.Context, arg ListarLooksPorUsuarioParams) ([]ListarLooksPorUsuarioRow, error) {
+	rows, err := q.db.QueryContext(ctx, listarLooksPorUsuario, arg.UsuarioID, arg.UsuarioID_2)
 	if err != nil {
 		return nil, err
 	}
@@ -514,6 +676,7 @@ func (q *Queries) ListarLooksPorUsuario(ctx context.Context, usuarioID int32) ([
 		var i ListarLooksPorUsuarioRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.UsuarioID,
 			&i.Nombre,
 			&i.Descripcion,
 			&i.Ocasion,
@@ -523,6 +686,8 @@ func (q *Queries) ListarLooksPorUsuario(ctx context.Context, usuarioID int32) ([
 			&i.FechaCreacion,
 			&i.Autora,
 			&i.PrendaEstrella,
+			&i.TotalMeGusta,
+			&i.LeDioMeGusta,
 		); err != nil {
 			return nil, err
 		}
@@ -538,7 +703,7 @@ func (q *Queries) ListarLooksPorUsuario(ctx context.Context, usuarioID int32) ([
 }
 
 const listarPrendasPorUsuario = `-- name: ListarPrendasPorUsuario :many
-SELECT id, usuario_id, nombre, categoria, fecha_creacion FROM prendas WHERE usuario_id = $1 ORDER BY nombre
+SELECT id, usuario_id, nombre, categoria, url_imagen, fecha_creacion FROM prendas WHERE usuario_id = $1 ORDER BY fecha_creacion DESC
 `
 
 func (q *Queries) ListarPrendasPorUsuario(ctx context.Context, usuarioID int32) ([]Prenda, error) {
@@ -555,7 +720,58 @@ func (q *Queries) ListarPrendasPorUsuario(ctx context.Context, usuarioID int32) 
 			&i.UsuarioID,
 			&i.Nombre,
 			&i.Categoria,
+			&i.UrlImagen,
 			&i.FechaCreacion,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listarTodasPrendasConAutora = `-- name: ListarTodasPrendasConAutora :many
+SELECT
+    p.id, p.usuario_id, p.nombre, p.categoria, p.url_imagen, p.fecha_creacion,
+    u.nombre AS autora
+FROM prendas p
+JOIN usuarios u ON p.usuario_id = u.id
+ORDER BY p.fecha_creacion DESC
+`
+
+type ListarTodasPrendasConAutoraRow struct {
+	ID            int32        `json:"id"`
+	UsuarioID     int32        `json:"usuario_id"`
+	Nombre        string       `json:"nombre"`
+	Categoria     string       `json:"categoria"`
+	UrlImagen     string       `json:"url_imagen"`
+	FechaCreacion sql.NullTime `json:"fecha_creacion"`
+	Autora        string       `json:"autora"`
+}
+
+func (q *Queries) ListarTodasPrendasConAutora(ctx context.Context) ([]ListarTodasPrendasConAutoraRow, error) {
+	rows, err := q.db.QueryContext(ctx, listarTodasPrendasConAutora)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListarTodasPrendasConAutoraRow
+	for rows.Next() {
+		var i ListarTodasPrendasConAutoraRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UsuarioID,
+			&i.Nombre,
+			&i.Categoria,
+			&i.UrlImagen,
+			&i.FechaCreacion,
+			&i.Autora,
 		); err != nil {
 			return nil, err
 		}
@@ -605,7 +821,7 @@ func (q *Queries) ListarUsuarios(ctx context.Context) ([]Usuario, error) {
 
 const obtenerLookConDetalle = `-- name: ObtenerLookConDetalle :one
 SELECT
-    l.id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
+    l.id, l.usuario_id, l.nombre, l.descripcion, l.ocasion, l.temporada, l.url_imagen, l.estilo, l.fecha_creacion,
     u.nombre AS autora,
     p.nombre AS prenda_estrella
 FROM looks l
@@ -616,6 +832,7 @@ WHERE l.id = $1
 
 type ObtenerLookConDetalleRow struct {
 	ID             int32          `json:"id"`
+	UsuarioID      int32          `json:"usuario_id"`
 	Nombre         string         `json:"nombre"`
 	Descripcion    sql.NullString `json:"descripcion"`
 	Ocasion        string         `json:"ocasion"`
@@ -632,6 +849,7 @@ func (q *Queries) ObtenerLookConDetalle(ctx context.Context, id int32) (ObtenerL
 	var i ObtenerLookConDetalleRow
 	err := row.Scan(
 		&i.ID,
+		&i.UsuarioID,
 		&i.Nombre,
 		&i.Descripcion,
 		&i.Ocasion,
@@ -646,7 +864,7 @@ func (q *Queries) ObtenerLookConDetalle(ctx context.Context, id int32) (ObtenerL
 }
 
 const obtenerPrenda = `-- name: ObtenerPrenda :one
-SELECT id, usuario_id, nombre, categoria, fecha_creacion FROM prendas WHERE id = $1
+SELECT id, usuario_id, nombre, categoria, url_imagen, fecha_creacion FROM prendas WHERE id = $1
 `
 
 func (q *Queries) ObtenerPrenda(ctx context.Context, id int32) (Prenda, error) {
@@ -657,6 +875,7 @@ func (q *Queries) ObtenerPrenda(ctx context.Context, id int32) (Prenda, error) {
 		&i.UsuarioID,
 		&i.Nombre,
 		&i.Categoria,
+		&i.UrlImagen,
 		&i.FechaCreacion,
 	)
 	return i, err

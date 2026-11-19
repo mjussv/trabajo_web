@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	db "trabajo-web/db/sqlc"
 	"trabajo-web/logic"
-	"trabajo-web/views"
 )
 
 type UsuariosHandler struct {
@@ -18,11 +16,14 @@ func NewUsuariosHandler(service *logic.UsuariosService) *UsuariosHandler {
 	return &UsuariosHandler{usuariosService: service}
 }
 
+// ==========================================
+// MÉTODO PARA VISTA WEB (Templ + PRG + Cookie)
+// ==========================================
+
 func (h *UsuariosHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusBadRequest)
-		views.IndexPage(nil, nil, "Formulario inválido").Render(r.Context(), w)
+		http.Error(w, "Formulario inválido", http.StatusBadRequest)
 		return
 	}
 
@@ -37,13 +38,25 @@ func (h *UsuariosHandler) CreateFromForm(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusBadRequest)
-		views.IndexPage(nil, nil, "Error al crear el usuario: "+err.Error()).Render(r.Context(), w)
+		http.Error(w, "Error al crear el usuario: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/?usuario_id="+strconv.Itoa(int(usuario.ID)), http.StatusSeeOther)
+	// Guardamos el ID del usuario autenticado en una cookie HttpOnly
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_user_id",
+		Value:    strconv.Itoa(int(usuario.ID)),
+		Path:     "/",
+		HttpOnly: true,
+	})
+
+	// Redirección limpia PRG sin parámetros en la URL
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+// ==========================================
+// MÉTODOS DE LA API REST (JSON)
+// ==========================================
 
 func (h *UsuariosHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var params logic.CreateUsuariosParams
@@ -68,10 +81,6 @@ func (h *UsuariosHandler) List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if usuarios == nil {
-		usuarios = []db.Usuario{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

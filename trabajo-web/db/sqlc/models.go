@@ -32,6 +32,7 @@ type Prenda struct {
 	UsuarioID     int32        `json:"usuario_id"`
 	Nombre        string       `json:"nombre"`
 	Categoria     string       `json:"categoria"`
+	UrlImagen     string       `json:"url_imagen"`
 	FechaCreacion sql.NullTime `json:"fecha_creacion"`
 }
 

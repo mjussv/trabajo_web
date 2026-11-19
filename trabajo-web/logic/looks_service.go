@@ -14,9 +14,7 @@ type LooksService struct {
 }
 
 func NewLooksService(queries *db.Queries) *LooksService {
-	return &LooksService{
-		queries: queries,
-	}
+	return &LooksService{queries: queries}
 }
 
 type CreateLooksParams struct {
@@ -36,6 +34,15 @@ func (s *LooksService) CreateLooks(ctx context.Context, params CreateLooksParams
 	}
 	if params.UsuarioID <= 0 {
 		return db.Look{}, errors.New("el ID de usuario es obligatorio")
+	}
+	if strings.TrimSpace(params.Ocasion) == "" {
+		return db.Look{}, errors.New("la ocasión es obligatoria")
+	}
+	if strings.TrimSpace(params.Temporada) == "" {
+		return db.Look{}, errors.New("la temporada es obligatoria")
+	}
+	if strings.TrimSpace(params.UrlImagen) == "" {
+		return db.Look{}, errors.New("la URL de imagen del look es obligatoria")
 	}
 
 	return s.queries.CrearLook(ctx, db.CrearLookParams{
@@ -59,8 +66,25 @@ func (s *LooksService) CreateLooks(ctx context.Context, params CreateLooksParams
 	})
 }
 
-func (s *LooksService) ListLooks(ctx context.Context) ([]db.ListarLooksConDetalleRow, error) {
-	return s.queries.ListarLooksConDetalle(ctx)
+func (s *LooksService) ListLooks(ctx context.Context, viewerID int32) ([]db.ListarLooksConDetalleRow, error) {
+	return s.queries.ListarLooksConDetalle(ctx, viewerID)
+}
+
+func (s *LooksService) SearchLooks(ctx context.Context, viewerID int32, query string) ([]db.BuscarLooksRow, error) {
+	return s.queries.BuscarLooks(ctx, db.BuscarLooksParams{
+		UsuarioID: viewerID,
+		Column2:   sql.NullString{String: query, Valid: true},
+	})
+}
+
+func (s *LooksService) ListLooksPorUsuario(ctx context.Context, perfilUsuarioID, viewerID int32) ([]db.ListarLooksPorUsuarioRow, error) {
+	if perfilUsuarioID <= 0 {
+		return nil, errors.New("ID de usuario inválido")
+	}
+	return s.queries.ListarLooksPorUsuario(ctx, db.ListarLooksPorUsuarioParams{
+		UsuarioID:   perfilUsuarioID,
+		UsuarioID_2: viewerID,
+	})
 }
 
 func (s *LooksService) GetLooksByID(ctx context.Context, id int32) (db.ObtenerLookConDetalleRow, error) {

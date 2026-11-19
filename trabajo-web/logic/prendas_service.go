@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 
@@ -13,15 +14,14 @@ type PrendasService struct {
 }
 
 func NewPrendasService(queries *db.Queries) *PrendasService {
-	return &PrendasService{
-		queries: queries,
-	}
+	return &PrendasService{queries: queries}
 }
 
 type CreatePrendasParams struct {
 	UsuarioID int32  `json:"usuario_id"`
 	Nombre    string `json:"nombre"`
 	Categoria string `json:"categoria"`
+	UrlImagen string `json:"url_imagen"`
 }
 
 func (s *PrendasService) CreatePrendas(ctx context.Context, params CreatePrendasParams) (db.Prenda, error) {
@@ -39,6 +39,7 @@ func (s *PrendasService) CreatePrendas(ctx context.Context, params CreatePrendas
 		UsuarioID: params.UsuarioID,
 		Nombre:    params.Nombre,
 		Categoria: params.Categoria,
+		Column4:   params.UrlImagen,
 	})
 }
 
@@ -47,6 +48,14 @@ func (s *PrendasService) ListPrendasPorUsuario(ctx context.Context, usuarioID in
 		return nil, errors.New("el ID de usuario debe ser mayor a 0")
 	}
 	return s.queries.ListarPrendasPorUsuario(ctx, usuarioID)
+}
+
+func (s *PrendasService) ListAllPrendas(ctx context.Context) ([]db.ListarTodasPrendasConAutoraRow, error) {
+	return s.queries.ListarTodasPrendasConAutora(ctx)
+}
+
+func (s *PrendasService) SearchPrendas(ctx context.Context, q string) ([]db.BuscarPrendasRow, error) {
+	return s.queries.BuscarPrendas(ctx, sql.NullString{String: q, Valid: true})
 }
 
 func (s *PrendasService) GetPrendasByID(ctx context.Context, id int32) (db.Prenda, error) {
@@ -61,6 +70,7 @@ type UpdatePrendasParams struct {
 	UsuarioID int32  `json:"usuario_id"`
 	Nombre    string `json:"nombre"`
 	Categoria string `json:"categoria"`
+	UrlImagen string `json:"url_imagen"`
 }
 
 func (s *PrendasService) UpdatePrendas(ctx context.Context, params UpdatePrendasParams) (db.Prenda, error) {
@@ -82,6 +92,7 @@ func (s *PrendasService) UpdatePrendas(ctx context.Context, params UpdatePrendas
 		UsuarioID: params.UsuarioID,
 		Nombre:    params.Nombre,
 		Categoria: params.Categoria,
+		Column5:   params.UrlImagen,
 	})
 }
 

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS prendas (
     usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     nombre VARCHAR(100) NOT NULL,
     categoria VARCHAR(50) NOT NULL,
+    url_imagen TEXT NOT NULL DEFAULT '',
     fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

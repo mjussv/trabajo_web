@@ -141,7 +141,7 @@ func (h *PrendasHandler) CreateFromForm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	usuario, err := h.prendasService.CreatePrendas(r.Context(), logic.CreatePrendasParams{
+	_, err := h.prendasService.CreatePrendas(r.Context(), logic.CreatePrendasParams{
 		UsuarioID: usuarioID
 		Nombre := r.FormValue("nombre")
 		Categoria := r.FormValue("categoria")

@@ -66,11 +66,11 @@ templ IndexPage(
 				</div>
 			</section>
 
-			<!-- FORMULARIOS DE CREACIÓN (UNO ABAJO DEL OTRO) -->
+			<!-- FORMULARIOS DE CREACIÓN -->
 			<div class="forms-grid">
 				<section class="card-form">
 					<h2>➕ Cargar Nueva Prenda</h2>
-					<form action="/prendas" method="POST">
+					<form hx-post="/prendas" hx-target="#grid-prendas" hx-swap="innerHTML">
 						<input type="text" name="nombre" placeholder="Nombre (ej: Camperón de Cuero)" required/>
 						<input type="text" name="categoria" placeholder="Categoría (ej: Abrigos, Calzado, Tops)" required/>
 						<input type="url" name="url_imagen" placeholder="URL de la foto de la prenda (https://...)"/>
@@ -80,7 +80,7 @@ templ IndexPage(
 
 				<section class="card-form">
 					<h2>✨ Crear Nuevo Look</h2>
-					<form action="/looks/crear-web" method="POST">
+					<form hx-post="/looks/crear-web" hx-target="#grid-looks" hx-swap="innerHTML">
 						<input type="text" name="nombre" placeholder="Nombre del Look (ej: Urbano Noche)" required/>
 						<input type="text" name="descripcion" placeholder="Descripción (notas, tips de combinación)"/>
 						<div class="form-row">
@@ -124,7 +124,7 @@ templ IndexPage(
 					if len(looks) == 0 {
 						<p class="empty-msg">Todavía no armaste ningún look.</p>
 					} else {
-						<div class="pinterest-grid">
+						<div class="pinterest-grid" id="grid-looks">
 							for _, l := range looks {
 								<article class="pin-card">
 									<img src={ l.UrlImagen } alt={ l.Nombre } class="pin-img"/>
@@ -145,10 +145,14 @@ templ IndexPage(
 										}
 										<div class="pin-footer">
 											<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) }</span>
-											<form action="/looks/eliminar-web" method="POST" style="margin:0;">
-												<input type="hidden" name="id" value={ fmt.Sprintf("%d", l.ID) }/>
-												<button type="submit" class="btn-eliminar">Borrar</button>
-											</form>
+											<button 
+												hx-delete={ fmt.Sprintf("/looks/%d", l.ID) } 
+												hx-target="closest article" 
+												hx-swap="outerHTML" 
+												hx-confirm="¿Seguro que querés borrar este look?"
+												class="btn-eliminar">
+												Borrar
+											</button>
 										</div>
 									</div>
 								</article>
@@ -162,7 +166,7 @@ templ IndexPage(
 					if len(prendas) == 0 {
 						<p class="empty-msg">No tenés prendas cargadas en tu clóset aún.</p>
 					} else {
-						<div class="pinterest-grid">
+						<div class="pinterest-grid" id="grid-prendas">
 							for _, p := range prendas {
 								<article class="pin-card">
 									<img src={ p.UrlImagen } alt={ p.Nombre } class="pin-img"/>
@@ -171,10 +175,14 @@ templ IndexPage(
 										<h4>{ p.Nombre }</h4>
 										<div class="pin-footer">
 											<span class="tags">ID: { fmt.Sprintf("%d", p.ID) }</span>
-											<form action="/prendas/eliminar" method="POST" style="margin:0;">
-												<input type="hidden" name="id" value={ fmt.Sprintf("%d", p.ID) }/>
-												<button type="submit" class="btn-eliminar">Borrar</button>
-											</form>
+											<button 
+												hx-delete={ fmt.Sprintf("/prendas/%d", p.ID) } 
+												hx-target="closest article" 
+												hx-swap="outerHTML" 
+												hx-confirm="¿Seguro que querés borrar esta prenda?"
+												class="btn-eliminar">
+												Borrar
+											</button>
 										</div>
 									</div>
 								</article>

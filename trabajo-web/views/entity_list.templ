@@ -19,11 +19,13 @@ templ EntityList(prendas []db.Prenda) {
 							<p>Categoría: { p.Categoria }</p>
 							<span class="tags">ID Usuario: { fmt.Sprintf("%d", p.UsuarioID) }</span>
 						</div>
-						<form action="/prendas/eliminar" method="POST" style="margin: 0;">
-							<input type="hidden" name="id" value={ fmt.Sprintf("%d", p.ID) }/>
-							<input type="hidden" name="usuario_id" value={ fmt.Sprintf("%d", p.UsuarioID) }/>
-							<button type="submit" class="btn-eliminar">Eliminar</button>
-						</form>
+						<button 
+							class="btn-eliminar"
+							hx-delete={ fmt.Sprintf("/prendas/%d", p.ID) }
+							hx-target="closest li"
+							hx-swap="outerHTML">
+							Eliminar
+						</button>
 					</li>
 				}
 			</ul>

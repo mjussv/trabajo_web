@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -20,7 +19,7 @@ func NewMeGustaLooksHandler(service *logic.MeGustaLooksService) *MeGustaLooksHan
 func (h *MeGustaLooksHandler) ToggleFromForm(w http.ResponseWriter, r *http.Request) {
 	usuarioID, logueado := obtenerUsuarioDeSesion(r)
 	if !logueado {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		w.Header().Set("HX-Redirect", "/")
 		return
 	}
 
@@ -41,38 +40,4 @@ func (h *MeGustaLooksHandler) ToggleFromForm(w http.ResponseWriter, r *http.Requ
 	}
 
 	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
-}
-
-// ==========================================
-// MÉTODOS DE LA API REST (JSON)
-// ==========================================
-
-func (h *MeGustaLooksHandler) AddMeGusta(w http.ResponseWriter, r *http.Request) {
-	var req logic.CreateMeGustaParams
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Formato JSON inválido", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.meGustaLooksService.AddMeGusta(r.Context(), req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-}
-
-func (h *MeGustaLooksHandler) DeleteMeGusta(w http.ResponseWriter, r *http.Request) {
-	var req logic.CreateMeGustaParams
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Formato JSON inválido", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.meGustaLooksService.DeleteMeGusta(r.Context(), req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }

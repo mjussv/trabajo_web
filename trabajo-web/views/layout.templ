@@ -1,0 +1,33 @@
+package views
+
+templ ImagenCard(url, alt string) {
+	<img
+		src={ url }
+		alt={ alt }
+		class="pin-img"
+		referrerpolicy="no-referrer"
+		onerror="this.onerror=null;this.src='https://placehold.co/400x500/F8E8A2/3C132C?text=Imagen+no+disponible'"
+	/>
+}
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/css/styles.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.0"></script>
+		</head>
+		<body
+			hx-on::before-request="const b = document.getElementById('error-banner'); if(b){ b.classList.add('hidden'); }"
+			hx-on::response-error="const b = document.getElementById('error-banner'); if(b){ b.textContent = event.detail.xhr.responseText; b.classList.remove('hidden'); } else { alert(event.detail.xhr.responseText); }"
+		>
+			<main class="container">
+				<div id="error-banner" class="alert-error hidden"></div>
+				{ children... }
+			</main>
+		</body>
+	</html>
+}

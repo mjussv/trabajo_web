@@ -1,0 +1,53 @@
+package views
+
+import (
+	"fmt"
+	"strconv"
+	db "trabajo-web/db/sqlc"
+)
+
+templ PrendasSelect(prendas []db.Prenda, oob bool) {
+	<select
+		id="select-prenda-estrella"
+		name="prenda_estrella_id"
+		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		<option value="">-- Prenda estrella (opcional) --</option>
+		for _, p := range prendas {
+			<option value={ strconv.Itoa(int(p.ID)) }>{ p.Nombre } ({ p.Categoria })</option>
+		}
+	</select>
+}
+
+templ PrendasList(prendas []db.Prenda) {
+	<div class="pinterest-grid" id="grid-prendas">
+		if len(prendas) == 0 {
+			<p class="empty-msg">No tenés prendas cargadas en tu clóset aún.</p>
+		} else {
+			for _, p := range prendas {
+				<article class="pin-card">
+					@ImagenCard(p.UrlImagen, p.Nombre)
+					<div class="pin-body">
+						<span class="tag">{ p.Categoria }</span>
+						<h4>{ p.Nombre }</h4>
+						<div class="pin-footer">
+							<span class="tags">ID: { fmt.Sprintf("%d", p.ID) }</span>
+							<button
+								type="button"
+								hx-delete={ fmt.Sprintf("/prendas/%d", p.ID) }
+								hx-target="#grid-prendas"
+								hx-swap="outerHTML"
+								hx-confirm="¿Seguro que querés borrar esta prenda?"
+								class="btn-eliminar"
+							>
+								Borrar
+							</button>
+						</div>
+					</div>
+				</article>
+			}
+		}
+	</div>
+}

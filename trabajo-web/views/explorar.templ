@@ -1,0 +1,112 @@
+package views
+
+import (
+	"fmt"
+	db "trabajo-web/db/sqlc"
+)
+
+templ ExplorarPage(
+	viewer db.Usuario,
+	query string,
+	tipo string,
+	looks []db.BuscarLooksRow,
+	prendas []db.BuscarPrendasRow,
+) {
+	@Layout("OOTD 🛍️ - Explorar Red") {
+		<h1>OOTD 🛍️</h1>
+		<p class="subtitle">Explorá outfits, looks y prendas de toda la comunidad</p>
+
+		<nav class="navbar">
+			<div class="nav-links">
+				<a href="/" class="nav-btn">👤 Mi Perfil</a>
+				<a href="/explorar" class="nav-btn active">🔍 Explorar Red</a>
+			</div>
+			<a href="/logout" class="btn-logout">Cerrar Sesión</a>
+		</nav>
+
+		<section class="card-form">
+			<form action="/explorar" method="GET" class="search-bar">
+				<input type="text" name="q" value={ query } placeholder="Buscar por estilo, ocasión, temporada, prenda o usuario..."/>
+				<select name="tipo">
+					<option value="todos" selected?={ tipo == "todos" || tipo == "" }>Todos (Outfits)</option>
+					<option value="looks" selected?={ tipo == "looks" }>Solo Looks</option>
+					<option value="prendas" selected?={ tipo == "prendas" }>Solo Prendas</option>
+				</select>
+				<button type="submit">Buscar</button>
+			</form>
+		</section>
+
+		if tipo == "todos" || tipo == "" || tipo == "looks" {
+			<section class="card-lista">
+				<h2>✨ Looks de la Comunidad</h2>
+				if len(looks) == 0 {
+					<p class="empty-msg">No se encontraron looks para esa búsqueda.</p>
+				} else {
+					<div class="pinterest-grid">
+						for _, l := range looks {
+							<article class="pin-card">
+								@ImagenCard(l.UrlImagen, l.Nombre)
+								<div class="pin-body">
+									<div class="author-row">
+										<span>Por </span>
+										<a href={ templ.SafeURL(fmt.Sprintf("/perfil/%d", l.UsuarioID)) } class="author-link">
+											{"@"}{ l.Autora }
+										</a>
+									</div>
+									<div class="pin-tags">
+										<span class="tag">{ l.Ocasion }</span>
+										<span class="tag">{ l.Temporada }</span>
+										if l.Estilo.Valid && l.Estilo.String != "" {
+											<span class="tag tag-accent">{ l.Estilo.String }</span>
+										}
+									</div>
+									<h4>{ l.Nombre }</h4>
+									if l.Descripcion.Valid && l.Descripcion.String != "" {
+										<p class="pin-desc">{ l.Descripcion.String }</p>
+									}
+									if l.PrendaEstrella.Valid && l.PrendaEstrella.String != "" {
+										<p class="pin-star">⭐ Prenda estrella: <strong>{ l.PrendaEstrella.String }</strong></p>
+									}
+									<div class="pin-footer">
+										if l.UsuarioID != viewer.ID {
+											@LikeButton(l.ID, l.LeDioMeGusta, l.TotalMeGusta)
+										} else {
+											<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) } (Tuyo)</span>
+										}
+									</div>
+								</div>
+							</article>
+						}
+					</div>
+				}
+			</section>
+		}
+
+		if tipo == "todos" || tipo == "" || tipo == "prendas" {
+			<section class="card-lista">
+				<h2>👕 Prendas en la Red</h2>
+				if len(prendas) == 0 {
+					<p class="empty-msg">No se encontraron prendas para esa búsqueda.</p>
+				} else {
+					<div class="pinterest-grid">
+						for _, p := range prendas {
+							<article class="pin-card">
+								@ImagenCard(p.UrlImagen, p.Nombre)
+								<div class="pin-body">
+									<div class="author-row">
+										<span>Por </span>
+										<a href={ templ.SafeURL(fmt.Sprintf("/perfil/%d", p.UsuarioID)) } class="author-link">
+											{"@"}{ p.Autora }
+										</a>
+									</div>
+									<span class="tag">{ p.Categoria }</span>
+									<h4>{ p.Nombre }</h4>
+								</div>
+							</article>
+						}
+					</div>
+				}
+			</section>
+		}
+	}
+}

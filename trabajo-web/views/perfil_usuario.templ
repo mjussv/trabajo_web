@@ -1,0 +1,95 @@
+package views
+
+import (
+	"fmt"
+	"strconv"
+	db "trabajo-web/db/sqlc"
+)
+
+templ PerfilUsuarioPage(
+	viewer db.Usuario,
+	perfil db.Usuario,
+	looks []db.ListarLooksPorUsuarioRow,
+	prendas []db.Prenda,
+) {
+	@Layout("OOTD 🛍️ - Perfil de " + perfil.Nombre) {
+		<h1>OOTD 🛍️</h1>
+		<p class="subtitle">Outfits guardados de {"@"}{ perfil.Nombre }</p>
+
+		<nav class="navbar">
+			<div class="nav-links">
+				<a href="/" class="nav-btn">👤 Mi Perfil</a>
+				<a href="/explorar" class="nav-btn">🔍 Explorar Red</a>
+			</div>
+			<a href="/logout" class="btn-logout">Cerrar Sesión</a>
+		</nav>
+
+		<section class="profile-header">
+			<div>
+				<span class="badge-role">Perfil de Usuario</span>
+				<h2>{"@"}{ perfil.Nombre }</h2>
+			</div>
+			<div class="profile-stats">
+				<div><strong>{ strconv.Itoa(len(looks)) }</strong><span>Looks</span></div>
+				<div><strong>{ strconv.Itoa(len(prendas)) }</strong><span>Prendas</span></div>
+			</div>
+		</section>
+
+		<section class="card-lista">
+			<h2>✨ Looks de {"@"}{ perfil.Nombre }</h2>
+			if len(looks) == 0 {
+				<p class="empty-msg">Este usuario aún no publicó looks.</p>
+			} else {
+				<div class="pinterest-grid">
+					for _, l := range looks {
+						<article class="pin-card">
+							@ImagenCard(l.UrlImagen, l.Nombre)
+							<div class="pin-body">
+								<div class="pin-tags">
+									<span class="tag">{ l.Ocasion }</span>
+									<span class="tag">{ l.Temporada }</span>
+									if l.Estilo.Valid && l.Estilo.String != "" {
+										<span class="tag tag-accent">{ l.Estilo.String }</span>
+									}
+								</div>
+								<h4>{ l.Nombre }</h4>
+								if l.Descripcion.Valid && l.Descripcion.String != "" {
+									<p class="pin-desc">{ l.Descripcion.String }</p>
+								}
+								if l.PrendaEstrella.Valid && l.PrendaEstrella.String != "" {
+									<p class="pin-star">⭐ Prenda estrella: <strong>{ l.PrendaEstrella.String }</strong></p>
+								}
+								<div class="pin-footer">
+									if perfil.ID != viewer.ID {
+										@LikeButton(l.ID, l.LeDioMeGusta, l.TotalMeGusta)
+									} else {
+										<span class="likes-badge">❤️ { fmt.Sprintf("%d", l.TotalMeGusta) }</span>
+									}
+								</div>
+							</div>
+						</article>
+					}
+				</div>
+			}
+		</section>
+
+		<section class="card-lista">
+			<h2>👕 Prendas de {"@"}{ perfil.Nombre }</h2>
+			if len(prendas) == 0 {
+				<p class="empty-msg">Este usuario aún no cargó prendas.</p>
+			} else {
+				<div class="pinterest-grid">
+					for _, p := range prendas {
+						<article class="pin-card">
+							@ImagenCard(p.UrlImagen, p.Nombre)
+							<div class="pin-body">
+								<span class="tag">{ p.Categoria }</span>
+								<h4>{ p.Nombre }</h4>
+							</div>
+						</article>
+					}
+				</div>
+			}
+		</section>
+	}
+}

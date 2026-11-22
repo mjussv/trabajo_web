@@ -1,0 +1,23 @@
+package views
+
+import (
+	"fmt"
+	"strconv"
+)
+
+templ LikeButton(lookID int32, leDioMeGusta bool, totalMeGusta int64) {
+	<button
+		type="button"
+		hx-post="/me-gusta/toggle-web"
+		hx-vals={ fmt.Sprintf(`{"look_id": "%d"}`, lookID) }
+		hx-swap="outerHTML"
+		hx-disabled-elt="this"
+		class={ "btn-like", templ.KV("liked", leDioMeGusta) }
+	>
+		if leDioMeGusta {
+			<span>❤️ { strconv.FormatInt(totalMeGusta, 10) }</span>
+		} else {
+			<span>🤍 { strconv.FormatInt(totalMeGusta, 10) }</span>
+		}
+	</button>
+}

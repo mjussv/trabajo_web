@@ -1,0 +1,11 @@
+package views
+
+import "strconv"
+
+templ ContadoresOOB(cantPrendas, cantLooks int) {
+	<strong id="stat-prendas" hx-swap-oob="true">{ strconv.Itoa(cantPrendas) }</strong>
+	<strong id="stat-looks" hx-swap-oob="true">{ strconv.Itoa(cantLooks) }</strong>
+	<span id="count-todos" hx-swap-oob="true">{ strconv.Itoa(cantPrendas + cantLooks) }</span>
+	<span id="count-prendas" hx-swap-oob="true">{ strconv.Itoa(cantPrendas) }</span>
+	<span id="count-looks" hx-swap-oob="true">{ strconv.Itoa(cantLooks) }</span>
+}

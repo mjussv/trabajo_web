@@ -55,7 +55,7 @@ func run() error {
 	usuariosHdl := handlers.NewUsuariosHandler(usuariosSvc)
 	prendasHdl := handlers.NewPrendasHandler(prendasSvc, usuariosSvc, looksSvc)
 	looksHdl := handlers.NewLooksHandler(looksSvc, usuariosSvc, prendasSvc)
-	meGustaHdl := handlers.NewMeGustaLooksHandler(meGustaSvc, usuariosSvc) // <-- línea 50 (antes solo recibía meGustaSvc)
+	meGustaHdl := handlers.NewMeGustaLooksHandler(meGustaSvc, usuariosSvc) 
 
 	router := handlers.SetupRoutes(usuariosHdl, prendasHdl, looksHdl, meGustaHdl)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/url"
+	"path"
 	"strings"
 	"unicode/utf8"
 
@@ -18,19 +19,32 @@ func NewPrendasService(queries *db.Queries) *PrendasService {
 	return &PrendasService{queries: queries}
 }
 
-func validarURLImagen(rawURL string, obligatoria bool) error {
-	if rawURL == "" {
-		if obligatoria {
-			return ValidationError{Msg: "la URL de imagen es obligatoria"}
-		}
-		return nil
-	}
-	u, err := url.ParseRequestURI(rawURL)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
-		return ValidationError{Msg: "la URL de imagen debe comenzar con http:// o https://"}
-	}
-	return nil
-}
+var extensionesImagen = map[string]bool{                                                                  
+        ".jpg":  true,                                                                                           
+        ".jpeg": true,                                                                                           
+        ".png":  true,                                                                                           
+        ".webp": true,                                                                                           
+        ".gif":  true,                                                                                           
+        ".avif": true,                                                                                           
+}                               
+ func validarURLImagen(rawURL string, obligatoria bool) error {                                            
+        if rawURL == "" {
+            if obligatoria {
+                return ValidationError{Msg: "la URL de imagen es obligatoria"}
+            }
+            return nil
+        }
+        u, err := url.ParseRequestURI(rawURL)
+        if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
+            return ValidationError{Msg: "la URL de imagen debe comenzar con http:// o https://"}
+        }
+        ext := strings.ToLower(path.Ext(u.Path))
+        if !extensionesImagen[ext] {
+            return ValidationError{Msg: "la URL debe apuntar a una imagen válida (.jpg, .jpeg, .png, .webp,
+            .gif o .avif)"}
+        }
+        return nil
+    }                   
 
 var likeEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 

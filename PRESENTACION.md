@@ -37,11 +37,6 @@
 
 OOTD fue construida siguiendo una arquitectura en capas limpia en **Go** (`handlers`, `logic`, `db/sqlc` y `views`), respaldada por **PostgreSQL 16** y consultas SQL tipadas generadas con **sqlc**.
 
-(?)(esto de abajo)
-Para lograr una experiencia fluida y moderna similar a una *Single Page Application (SPA)* sin escribir archivos JavaScript propios, la interfaz combina componentes HTML renderizados en el servidor con **Templ** e interactividad declarativa mediante **HTMX**:
-- Al crear o eliminar una prenda o un look, el servidor responde únicamente con los fragmentos HTML necesarios para actualizar la grilla correspondiente, el selector de prenda estrella y los contadores de estadísticas (*Out-of-Band Swaps*), evitando recargas completas del navegador.
-- El botón de *Me gusta* alterna su estado y actualiza el conteo en el lugar de forma inmediata.
-
 ---
 
 ## Stack Tecnológico

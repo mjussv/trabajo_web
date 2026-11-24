@@ -3,13 +3,13 @@
 
   Para ejecutar la aplicación y correr las suites de pruebas de forma automatizada es necesario contar con las siguientes herramientas instaladas:
 
-  - Go (v1.22.2+)
-  - sqlc (v1.31.1+)
-  - templ (v0.3.1100+)
-  - Docker (v29.1.3+)
-  - Docker Compose (v2.27.0+)
-  - GNU Make (v4.3+)
-  - Hurl (v4.3.0+)
+- Go (v1.25.0+)
+- sqlc (v1.31.1+)
+- templ (v0.3.1100+)
+- Docker (v29.1.3+)
+- Docker Compose (v2.27.0+)
+- GNU Make (v4.3+)
+- Hurl (v4.3.0+)
 
   *(Nota: el motor de base de datos **PostgreSQL 16** y su esquema inicial se levantan y configuran automáticamente mediante Docker Compose, por lo que no requiere instalación local. Asimismo, **HTMX v2.0.0** se importa directamente desde CDN en el layout base).*
 

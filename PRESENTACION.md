@@ -36,13 +36,3 @@
 ## Arquitectura y Experiencia de Usuario (SPA sin JavaScript propio)
 
 OOTD fue construida siguiendo una arquitectura en capas limpia en **Go** (`handlers`, `logic`, `db/sqlc` y `views`), respaldada por **PostgreSQL 16** y consultas SQL tipadas generadas con **sqlc**.
-
----
-
-## Stack Tecnológico
-
-- **Backend:** Go (biblioteca estándar `net/http`, arquitectura modular en capas)
-- **Motor de Plantillas:** Templ (renderizado HTML tipado en servidor)
-- **Interactividad Frontend:** HTMX 2.0 + CSS3 personalizado
-- **Base de Datos y Persistencia:** PostgreSQL 16 + `sqlc` + driver `pgx/v5`
-- **Infraestructura y Pruebas Automatizadas:** Docker, Docker Compose, GNU Make, `go test` y Hurl

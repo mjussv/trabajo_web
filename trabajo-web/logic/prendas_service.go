@@ -3,9 +3,12 @@ package logic
 import (
 	"context"
 	"database/sql"
+	"io"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	db "trabajo-web/db/sqlc"
@@ -37,6 +40,58 @@ var prefijosDataImagen = []string{
 	"data:image/gif;base64,",
 }
 
+func esRespuestaDeImagen(rawURL string) bool {
+	client := &http.Client{Timeout: 4 * time.Second}
+
+	reqHead, err := http.NewRequest(http.MethodHead, rawURL, nil)
+	if err != nil {
+		return false
+	}
+	reqHead.Header.Set("User-Agent", "Mozilla/5.0")
+
+	if resp, err := client.Do(reqHead); err == nil {
+		resp.Body.Close()
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			ct := strings.ToLower(strings.TrimSpace(resp.Header.Get("Content-Type")))
+			if strings.HasPrefix(ct, "image/") {
+				return true
+			}
+			if ct != "" && !strings.HasPrefix(ct, "application/octet-stream") {
+				return false
+			}
+		}
+	}
+
+	reqGet, err := http.NewRequest(http.MethodGet, rawURL, nil)
+	if err != nil {
+		return false
+	}
+	reqGet.Header.Set("User-Agent", "Mozilla/5.0")
+	reqGet.Header.Set("Range", "bytes=0-511")
+
+	resp, err := client.Do(reqGet)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false
+	}
+
+	ct := strings.ToLower(strings.TrimSpace(resp.Header.Get("Content-Type")))
+	if strings.HasPrefix(ct, "image/") {
+		return true
+	}
+
+	buf, err := io.ReadAll(io.LimitReader(resp.Body, 512))
+	if err != nil || len(buf) == 0 {
+		return false
+	}
+
+	return strings.HasPrefix(http.DetectContentType(buf), "image/")
+}
+
 func validarURLImagen(rawURL string, obligatoria bool) error {
 	if rawURL == "" {
 		if obligatoria {
@@ -62,10 +117,23 @@ func validarURLImagen(rawURL string, obligatoria bool) error {
 		return ValidationError{Msg: "la URL de imagen debe comenzar con http:// o https://"}
 	}
 
-	ext := strings.ToLower(path.Ext(u.Path))
-	if ext != "" && !extensionesImagen[ext] {
-		return ValidationError{Msg: "la URL apunta a un archivo que no es imagen (.jpg, .jpeg, .png, .webp, .gif o .avif)"}
+	host := strings.ToLower(u.Hostname())
+	if host != "localhost" && !strings.Contains(host, ".") {
+		return ValidationError{Msg: "la URL de imagen no tiene un dominio válido"}
 	}
+
+	ext := strings.ToLower(path.Ext(u.Path))
+	if ext != "" {
+		if !extensionesImagen[ext] {
+			return ValidationError{Msg: "la URL apunta a un archivo que no es imagen (.jpg, .jpeg, .png, .webp, .gif o .avif)"}
+		}
+		return nil
+	}
+
+	if !esRespuestaDeImagen(rawURL) {
+		return ValidationError{Msg: "el enlace no corresponde a una imagen válida (copiá la dirección directa de la imagen, no la página web)"}
+	}
+
 	return nil
 }
 

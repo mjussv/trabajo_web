@@ -11,7 +11,7 @@
 
 ## ¿Qué es OOTD?
 
-**OOTD (Outfit of the Day)** es una aplicación web diseñada como un guardarropa digital y comunidad de (?)(inspiración de moda). Su objetivo es resolver un problema cotidiano: organizar las prendas que cada persona tiene en su clóset, combinarlas en *looks* completos según la ocasión, la temporada o el estilo, y descubrir ideas de vestimenta compartidas por otros usuarios de manera simple, rápida y visual.
+**OOTD (Outfit of the Day)** es una aplicación web diseñada como un guardarropa digital y comunidad de inspiración de moda. Su objetivo es resolver un problema cotidiano: organizar las prendas que cada persona tiene en su clóset, combinarlas en *looks* completos según la ocasión, la temporada o el estilo, y descubrir ideas de vestimenta compartidas por otros usuarios de manera simple, rápida y visual.
 
 ---
 
@@ -19,7 +19,7 @@
 
 1. **Gestión de Cuentas y Sesión Segura:**
    - Registro e inicio de sesión con validación de datos, almacenamiento seguro de contraseñas mediante **bcrypt** y persistencia de sesión a través de **cookies firmadas (HMAC-SHA256)**.
-   - Validación de permisos en el servidor para garantizar que cada usuario solo pueda modificar o eliminar sus propias prendas y looks, y que no pueda darse *Me gusta* a sus propias publicaciones.
+   - Validación de permisos en el servidor para garantizar que cada usuario solo pueda modificar o eliminar sus propias prendas y looks, y que no pueda darse *Me gusta* a sus propias publicaciones (looks).
 
 2. **Guardarropa Digital Personal (Prendas y Looks):**
    - **Carga y gestión de prendas:** Permite registrar prendas individuales con nombre, categoría (abrigos, calzado, tops, etc.) e imagen, con respaldo visual automático en caso de enlaces externos caídos.

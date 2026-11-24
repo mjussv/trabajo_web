@@ -39,11 +39,11 @@
   A diferencia de la ejecución interactiva de la aplicación, las pruebas automatizadas levantan un entorno limpio, ejecutan las validaciones correspondientes y realizan la limpieza final de contenedores y volúmenes al terminar. Todos los comandos deben ejecutarse desde la carpeta `trabajo-web`:
 
     - `make test-hurl`: levanta la base de datos y la aplicación completa, espera a que el servidor responda en `http://localhost:8080` y ejecuta la suite de pruebas de integración HTTP y fragmentos HTMX definida en `requests.hurl` (verificando códigos de estado esperados, cabeceras, cookies de sesión, casos de error 400/401/403/404 y contenido HTML/OOB devuelto).
-    - `make test`: ejecuta toda la batería de tests unitarios y de integración en Go (`go test -v ./...`), incluyendo la suite completa sobre la capa de persistencia y consultas `sqlc` (`TestSuiteCompleta`).
+    - `make test`: ejecuta todos los tests unitarios y de integración en Go (`go test -v ./...`), incluyendo la suite completa sobre la capa de persistencia y consultas `sqlc` (`TestSuiteCompleta`).
     - `make test-db`: ejecuta únicamente los tests correspondientes a la capa de base de datos (`go test -v ./db/sqlc`).
 
 ---
 
 **Aclaraciones para el docente:**
 
-  - **Cobertura completa del dominio en la interfaz web:** A diferencia de la cuarta entrega (donde solo se habían migrado usuarios y prendas), en la versión final se encuentran implementadas de punta a punta las cuatro entidades del modelo (`usuarios`, `prendas`, `looks` y `me_gusta_looks`) con sus respectivas vistas Templ, lógica de negocio y consultas `sqlc`.
+  - **Cobertura completa del dominio en la interfaz web:** A diferencia de la cuarta entrega (donde solo se habían trabajado usuarios y prendas), en la versión final se encuentran implementadas de punta a punta las cuatro entidades del modelo (`usuarios`, `prendas`, `looks` y `me_gusta_looks`) con sus respectivas vistas Templ, lógica de negocio y consultas `sqlc`.

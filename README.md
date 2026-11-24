@@ -47,7 +47,3 @@
 **Aclaraciones para el docente:**
 
   - **Cobertura completa del dominio en la interfaz web:** A diferencia de la cuarta entrega (donde solo se habían migrado usuarios y prendas), en la versión final se encuentran implementadas de punta a punta las cuatro entidades del modelo (`usuarios`, `prendas`, `looks` y `me_gusta_looks`) con sus respectivas vistas Templ, lógica de negocio y consultas `sqlc`.
-
-  - **Interfaz reactiva sin archivos `.js`:** A diferencia del esquema clásico donde cada acción vuelve a cargar toda la pantalla completa, operaciones como crear o borrar prendas y looks (POST / DELETE en /prendas y /looks) o dar "Me gusta" (POST /me-gusta/toggle-web) actualizan solo los elementos que cambiaron (grillas, selectores y contadores del perfil) mediante atributos de HTMX, sin recargar la página completa y sin utilizar archivos JavaScript locales.
-    
-  - **Autenticación y manejo real de sesiones:** Se eliminó la identificación de usuario por parámetro en URL (`?usuario_id=`). El registro almacenado en PostgreSQL cifra las contraseñas con **bcrypt** y el inicio de sesión emite una **cookie firmada con HMAC-SHA256** (`session_user_id`), validada en cada operación protegida del servidor.

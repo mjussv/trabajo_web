@@ -1,4 +1,4 @@
-# Quinta Entrega
+# Entrega tp6
 **Requisitos Previos:**
 
   Para ejecutar la aplicación y correr las suites de pruebas de forma automatizada es necesario contar con las siguientes herramientas instaladas:
